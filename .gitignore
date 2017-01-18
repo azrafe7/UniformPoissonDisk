@@ -1,0 +1,9 @@
+# Build and Release Folders
+bin/*
+!bin/js/
+bin-debug/
+bin-release/
+
+# Other files and folders
+.settings/
+
