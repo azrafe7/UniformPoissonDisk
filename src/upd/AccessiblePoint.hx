@@ -20,15 +20,15 @@ from { var x(default, never):Float; var y(default, never):Float; }
 from { var x(get, never):Float; var y(get, never):Float; }
 {
 
-	macro static public function getx(p1:ExprOf<AccessiblePoint>):ExprOf<Float>
-	{
-		return macro ($p1.x);
-	}
+  macro static public function getx(p1:ExprOf<AccessiblePoint>):ExprOf<Float>
+  {
+    return macro ($p1.x);
+  }
   
-	macro static public function gety(p1:ExprOf<AccessiblePoint>):ExprOf<Float>
-	{
-		return macro ($p1.y);
-	}
+  macro static public function gety(p1:ExprOf<AccessiblePoint>):ExprOf<Float>
+  {
+    return macro ($p1.y);
+  }
   
   
   // these will be dynamic accessors on static targets (f.e. cpp)
