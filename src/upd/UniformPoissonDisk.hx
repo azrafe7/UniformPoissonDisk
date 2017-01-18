@@ -1,5 +1,5 @@
 /** 
- * Uniform Poisson Disk Sampler
+ * Uniform Poisson Disk Sampler (https://gist.github.com/azrafe7/9b89b6c59dfbe5a28530)
  * 
  * References:
  * 
