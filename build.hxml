@@ -1,0 +1,6 @@
+-cp src
+-main Main
+-x bin\main
+#-js bin\main.js
+#-cpp bin\cpp
+#-cs bin\cs
