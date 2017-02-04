@@ -2,19 +2,20 @@ package ;
 
 import upd.UniformPoissonDisk;
 
-using upd.AccessiblePoint;
+
+typedef Point = upd.Point;
 
 
 class Main {
   public static function main() {
     
-    var c = new CustomPoint(0, 0);
-    var topLeft = new CustomPoint(-8, -8);
-    var bottomRight = new CustomPoint(8, 8);
+    var c = new Point(0, 0);
+    var topLeft = new Point(-8, -8);
+    var bottomRight = new Point(8, 8);
     var radius = 10.0;
     var minDist = 5;
     
-    var upd = new UniformPoissonDisk<CustomPoint>();
+    var upd = new UniformPoissonDisk();
     
     var samples = upd.sampleCircle(c, radius, minDist);
     trace("points(" + samples.length + ") sampled in circle(c=" + pointToStr(c) + ", r=" + radius + "): \n" + pointArrayToStr(samples) + "\n");
@@ -23,8 +24,7 @@ class Main {
     trace("points(" + samples.length + ") sampled in rectangle(tl=" + pointToStr(topLeft) + ", br=" + pointToStr(bottomRight) + "): \n" + pointArrayToStr(samples));
   }
   
-  @:generic
-  static function pointToStr<P:AccessiblePoint>(p:P, decimals:Int = 2):String {
+  static function pointToStr(p:Point, decimals:Int = 2):String {
     var x = p.x;
     var y = p.y;
     if (decimals >= 0) {
@@ -35,19 +35,9 @@ class Main {
     return '($x,$y)';
   }
   
-  @:generic
-  static function pointArrayToStr<P:AccessiblePoint>(points:Array<P>):String {
+  static function pointArrayToStr(points:Array<Point>):String {
     var strArr = [for (p in points) " " + pointToStr(p)];
     return strArr.join("\n");
   }
 }
 
-class CustomPoint {
-  public var x(default, null):Float;
-  public var y(default, null):Float;
-  
-  public function new(x:Float, y:Float):Void {
-    this.x = x;
-    this.y = y;
-  }
-}

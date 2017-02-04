@@ -17,14 +17,24 @@
  
 package upd;
 
-using upd.AccessiblePoint;
+/* Make this typedef reference the real Point class (e.g. flash.geom.Point), 
+ * which should implement this pseudo-interface:
+ * 
+ * interface {
+ *   public var x(get, never):Float;
+ *   public var y(get, never):Float;
+ * 
+ *   public function new(x:Float, y:Float):Void;
+ * }
+ */
+typedef Point = SimplePoint;
 
 
-typedef Settings< P:(AccessiblePoint, ConstructiblePoint) > = {
-  var topLeft:P;
-  var bottomRight:P;
-  var center:P;
-  var dimensions:P;
+typedef Settings = {
+  var topLeft:Point;
+  var bottomRight:Point;
+  var center:Point;
+  var dimensions:Point;
   var rejectionSqDistance:Null<Float>;
   var minimumDistance:Float;
   var cellSize:Float;
@@ -32,10 +42,10 @@ typedef Settings< P:(AccessiblePoint, ConstructiblePoint) > = {
   var gridHeight:Int;
 }
 
-typedef State< P:(AccessiblePoint, ConstructiblePoint) > = {
-  var grid:Array<Array<P>>; // NB: Grid[y][x]
-  var activePoints:Array<P>;
-  var points:Array<P>;
+typedef State = {
+  var grid:Array<Array<Point>>; // NB: Grid[y][x]
+  var activePoints:Array<Point>;
+  var points:Array<Point>;
 }
 
 
@@ -43,8 +53,7 @@ typedef State< P:(AccessiblePoint, ConstructiblePoint) > = {
  * ...
  * @author azrafe7
  */
-@:generic
-class UniformPoissonDisk< P:(AccessiblePoint, ConstructiblePoint) > {
+class UniformPoissonDisk {
 
   public var DEFAULT_POINTS_PER_ITERATION:Int = 30;
 
@@ -54,16 +63,16 @@ class UniformPoissonDisk< P:(AccessiblePoint, ConstructiblePoint) > {
     
   }
   
-  public function sampleCircle(center:P, radius:Float, minimumDistance:Float, ?pointsPerIteration:Int):Array<P> 
+  public function sampleCircle(center:Point, radius:Float, minimumDistance:Float, ?pointsPerIteration:Int):Array<Point> 
   {
     if (pointsPerIteration == null) pointsPerIteration = DEFAULT_POINTS_PER_ITERATION;
 
-    var topLeft = new P(center.x - radius, center.y - radius);
-    var bottomRight = new P(center.x + radius, center.y + radius);
+    var topLeft = new Point(center.x - radius, center.y - radius);
+    var bottomRight = new Point(center.x + radius, center.y + radius);
     return sample(topLeft, bottomRight, radius, minimumDistance, pointsPerIteration);
   }
 
-  public function sampleRectangle(topLeft:P, bottomRight:P, minimumDistance:Float, ?pointsPerIteration:Int):Array<P>
+  public function sampleRectangle(topLeft:Point, bottomRight:Point, minimumDistance:Float, ?pointsPerIteration:Int):Array<Point>
   {
     if (pointsPerIteration == null) pointsPerIteration = DEFAULT_POINTS_PER_ITERATION;
 
@@ -71,16 +80,16 @@ class UniformPoissonDisk< P:(AccessiblePoint, ConstructiblePoint) > {
   }
 
   
-  function sample(topLeft:P, bottomRight:P, ?rejectionDistance:Float, minimumDistance:Float, pointsPerIteration:Int):Array<P>
+  function sample(topLeft:Point, bottomRight:Point, ?rejectionDistance:Float, minimumDistance:Float, pointsPerIteration:Int):Array<Point>
   {
-    var dimensions = new P(bottomRight.x - topLeft.x, bottomRight.y - topLeft.y);
+    var dimensions = new Point(bottomRight.x - topLeft.x, bottomRight.y - topLeft.y);
     var cellSize = minimumDistance / Tools.SQUARE_ROOT_TWO;
     
-    var settings:Settings<P> = 
+    var settings:Settings = 
     {
       topLeft : topLeft, bottomRight : bottomRight,
       dimensions : dimensions,
-      center : new P((topLeft.x + bottomRight.x) / 2, (topLeft.y + bottomRight.y) / 2),
+      center : new Point((topLeft.x + bottomRight.x) / 2, (topLeft.y + bottomRight.y) / 2),
       cellSize : cellSize,
       minimumDistance : minimumDistance,
       rejectionSqDistance : rejectionDistance == null ? null : rejectionDistance * rejectionDistance,
@@ -88,15 +97,15 @@ class UniformPoissonDisk< P:(AccessiblePoint, ConstructiblePoint) > {
       gridHeight : Std.int(dimensions.y / cellSize) + 1,
     };
 
-    var grid = new Array<Array<P>>();
+    var grid = new Array<Array<Point>>();
     for (y in 0...settings.gridHeight) {
       grid.push( [for (x in 0...settings.gridWidth) null] );
     }
     
-    var state:State<P> = 
+    var state:State = 
     {
-      activePoints : new Array<P>(),
-      points : new Array<P>(),
+      activePoints : new Array<Point>(),
+      points : new Array<Point>(),
       grid : grid,
     };
 
@@ -119,7 +128,7 @@ class UniformPoissonDisk< P:(AccessiblePoint, ConstructiblePoint) > {
     return state.points;
   }
 
-  function addFirstPoint(settings:Settings<P>, state:State<P>):Void
+  function addFirstPoint(settings:Settings, state:State):Void
   {
     var added = false;
     while (!added)
@@ -130,7 +139,7 @@ class UniformPoissonDisk< P:(AccessiblePoint, ConstructiblePoint) > {
       d = Tools.randomFloat();
       var yr = settings.topLeft.y + settings.dimensions.y * d;
 
-      var p = new P(xr, yr);
+      var p = new Point(xr, yr);
       if (settings.rejectionSqDistance != null && distanceSquared(settings.center, p) > settings.rejectionSqDistance)
         continue;
       
@@ -145,7 +154,7 @@ class UniformPoissonDisk< P:(AccessiblePoint, ConstructiblePoint) > {
     } 
   }
   
-  function addNextPoint(point:P, settings:Settings<P>, state:State<P>):Bool
+  function addNextPoint(point:Point, settings:Settings, state:State):Bool
   {
     var found = false;
     var q = randomPointAround(point, settings.minimumDistance);
@@ -184,7 +193,7 @@ class UniformPoissonDisk< P:(AccessiblePoint, ConstructiblePoint) > {
     return found;
   }
   
-  public function randomPointAround(center:P, minimumDistance:Float):P
+  public function randomPointAround(center:Point, minimumDistance:Float):Point
   {
     var d = Tools.randomFloat();
     var radius = minimumDistance + minimumDistance * d;
@@ -195,22 +204,22 @@ class UniformPoissonDisk< P:(AccessiblePoint, ConstructiblePoint) > {
     var newX = radius * Math.sin(angle);
     var newY = radius * Math.cos(angle);
 
-    return new P((center.x + newX), (center.y + newY));
+    return new Point((center.x + newX), (center.y + newY));
   }
   
-  public function denormalize(point:P, origin:P, cellSize:Float):P
+  public function denormalize(point:Point, origin:Point, cellSize:Float):Point
   {
-    return new P(Std.int((point.x - origin.x) / cellSize), Std.int((point.y - origin.y) / cellSize));
+    return new Point(Std.int((point.x - origin.x) / cellSize), Std.int((point.y - origin.y) / cellSize));
   }
   
-  public function distanceSquared(p:P, q:P):Float 
+  public function distanceSquared(p:Point, q:Point):Float 
   {
     var dx = p.x - q.x;
     var dy = p.y - q.y;
     return dx * dx + dy * dy;
   }
   
-  inline public function distance(p:P, q:P):Float 
+  inline public function distance(p:Point, q:Point):Float 
   {
     return Math.sqrt(distanceSquared(p, q));
   }
