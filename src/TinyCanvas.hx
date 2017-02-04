@@ -1,3 +1,12 @@
+/**
+ * Implementation choices have been influenced by the following references.
+ * 
+ * References:
+ * 
+ * @see http://html5tutorial.com/advanced-path-painting/
+ * @see https://github.com/fponticelli/minicanvas
+ * @see https://github.com/hxDaedalus/hxDaedalus/blob/master/src/wings/jsCanvas
+ */
 
 import js.Browser.*;
 import js.html.*;
