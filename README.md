@@ -1,10 +1,11 @@
 # UniformPoissonDisk
 Uniform Poisson Disk Sampling (WIP).
 
+<sup>[online js demo](https://cdn.rawgit.com/azrafe7/UniformPoissonDisk/master/bin/JsDemo/index.html)</sup>
+<br>
 ![](snapshot.png)
 
 Sampling rects and circles is already available. 
-
 Next step is adding the possibility to customize the function used to reject/include a sample in the final result.
 
 ## References
