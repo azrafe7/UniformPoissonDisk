@@ -1,6 +1,6 @@
 # Build and Release Folders
 bin/*
-!bin/js/
+!bin/JsDemo/
 bin-debug/
 bin-release/
 
