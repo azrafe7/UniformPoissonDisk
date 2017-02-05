@@ -32,12 +32,13 @@ package upd;
 typedef Point = SimplePoint;
 
 
+typedef RejectionFunction = Point->Bool;
+
 typedef Settings = {
   var topLeft:Point;
   var bottomRight:Point;
-  var center:Point;
   var dimensions:Point;
-  var rejectionSqDistance:Null<Float>;
+  var reject:Null<RejectionFunction>;
   var minimumDistance:Float;
   var cellSize:Float;
   var gridWidth:Int; 
@@ -67,23 +68,27 @@ class UniformPoissonDisk {
   
   public function sampleCircle(center:Point, radius:Float, minimumDistance:Float, ?pointsPerIteration:Int):Array<Point> 
   {
-    if (pointsPerIteration == null) pointsPerIteration = DEFAULT_POINTS_PER_ITERATION;
-
     var topLeft = new Point(center.x - radius, center.y - radius);
     var bottomRight = new Point(center.x + radius, center.y + radius);
-    return sample(topLeft, bottomRight, radius, minimumDistance, pointsPerIteration);
+    var radiusSquared = radius * radius;
+    
+    function reject(p:Point):Bool {
+      return distanceSquared(center, p) > radiusSquared;
+    }
+    
+    return sample(topLeft, bottomRight, minimumDistance, reject, pointsPerIteration);
   }
 
   public function sampleRectangle(topLeft:Point, bottomRight:Point, minimumDistance:Float, ?pointsPerIteration:Int):Array<Point>
   {
-    if (pointsPerIteration == null) pointsPerIteration = DEFAULT_POINTS_PER_ITERATION;
-
-    return sample(topLeft, bottomRight, null, minimumDistance, pointsPerIteration);
+    return sample(topLeft, bottomRight, minimumDistance, null, pointsPerIteration);
   }
 
   
-  function sample(topLeft:Point, bottomRight:Point, ?rejectionDistance:Float, minimumDistance:Float, pointsPerIteration:Int):Array<Point>
+  public function sample(topLeft:Point, bottomRight:Point, minimumDistance:Float, ?reject:RejectionFunction, ?pointsPerIteration:Int):Array<Point>
   {
+    if (pointsPerIteration == null) pointsPerIteration = DEFAULT_POINTS_PER_ITERATION;
+
     var dimensions = new Point(bottomRight.x - topLeft.x, bottomRight.y - topLeft.y);
     var cellSize = minimumDistance / Tools.SQUARE_ROOT_TWO;
     
@@ -91,10 +96,9 @@ class UniformPoissonDisk {
     {
       topLeft : topLeft, bottomRight : bottomRight,
       dimensions : dimensions,
-      center : new Point((topLeft.x + bottomRight.x) / 2, (topLeft.y + bottomRight.y) / 2),
       cellSize : cellSize,
       minimumDistance : minimumDistance,
-      rejectionSqDistance : rejectionDistance == null ? null : rejectionDistance * rejectionDistance,
+      reject : reject,
       gridWidth : Std.int(dimensions.x / cellSize) + 1,
       gridHeight : Std.int(dimensions.y / cellSize) + 1,
     };
@@ -120,8 +124,10 @@ class UniformPoissonDisk {
       var point = state.activePoints[listIndex];
       var found = false;
 
-      for (k in 0...pointsPerIteration)
-        found = found || addNextPoint(point, settings, state);
+      for (k in 0...pointsPerIteration) {
+        found = addNextPoint(point, settings, state);
+        if (found) break;
+      }
 
       if (!found)
         state.activePoints.splice(listIndex, 1);
@@ -142,12 +148,12 @@ class UniformPoissonDisk {
       var yr = settings.topLeft.y + settings.dimensions.y * d;
 
       var p = new Point(xr, yr);
-      if (settings.rejectionSqDistance != null && distanceSquared(settings.center, p) > settings.rejectionSqDistance)
+      if (settings.reject != null && settings.reject(p))
         continue;
       
       added = true;
 
-      var index = denormalize(p, settings.topLeft, settings.cellSize);
+      var index = pointToGridCoord(p, settings.topLeft, settings.cellSize);
 
       state.grid[Std.int(index.y)][Std.int(index.x)] = p;
 
@@ -160,12 +166,13 @@ class UniformPoissonDisk {
   {
     var found = false;
     var q = randomPointAround(point, settings.minimumDistance);
+    var mustReject = settings.reject != null && settings.reject(q);
 
     if (q.x >= settings.topLeft.x && q.x < settings.bottomRight.x && 
         q.y > settings.topLeft.y && q.y < settings.bottomRight.y &&
-        (settings.rejectionSqDistance == null || distanceSquared(settings.center, q) <= settings.rejectionSqDistance))
+        (!mustReject))
     {
-      var qIndex = denormalize(q, settings.topLeft, settings.cellSize);
+      var qIndex = pointToGridCoord(q, settings.topLeft, settings.cellSize);
       var tooClose = false;
 
       //for (var i = (int) Math.Max(0, qIndex.x - 2); i < Math.Min(settings.GridWidth, qIndex.x + 3) && !tooClose; i++)
@@ -176,6 +183,7 @@ class UniformPoissonDisk {
         var j = Std.int(Math.max(0, qIndex.y - 2));
         while (j < Math.min(settings.gridHeight, qIndex.y + 3) && !tooClose)
         {
+          var cellState = state.grid[j][i];
           if (state.grid[j][i] != null && distance(state.grid[j][i], q) < settings.minimumDistance) {
             tooClose = true;
           }
@@ -203,13 +211,13 @@ class UniformPoissonDisk {
     d = Tools.randomFloat();
     var angle = Tools.TWO_PI * d;
 
-    var newX = radius * Math.sin(angle);
-    var newY = radius * Math.cos(angle);
+    var x = radius * Math.sin(angle);
+    var y = radius * Math.cos(angle);
 
-    return new Point((center.x + newX), (center.y + newY));
+    return new Point((center.x + x), (center.y + y));
   }
   
-  public function denormalize(point:Point, origin:Point, cellSize:Float):Point
+  public function pointToGridCoord(point:Point, origin:Point, cellSize:Float):Point
   {
     return new Point(Std.int((point.x - origin.x) / cellSize), Std.int((point.y - origin.y) / cellSize));
   }
