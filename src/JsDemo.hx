@@ -26,6 +26,8 @@ class JsDemo {
   static var OVERRIDE_DEFAULT_POINTS_PER_ITERATION:Null<Int> = null; // 2;
   
   // palettes
+  static var BOUND_COLOR:Int = 0xC0C0C0;
+  
   static var RED_PALETTE:Palette = [0xFF0000, 0xF52000, 0xE01515, 0xFF3010];
   static var GREEN_PALETTE:Palette = [0x00FF00, 0x00F520, 0x15E015, 0x10FF30];
   static var FIRE_PALETTE:Palette = [0xFD5039, 0xFD7303, 0xFD9D4F, 0xFDE181, 0xFD4403, 0xFD5039, 0xFD7303, 0xFD9D4F];
@@ -64,9 +66,12 @@ class JsDemo {
       var minDist = 15;
       var radius = tinyCanvasCircle.width * .45;
       var drawRadius = minDist * .75;
-      var samples = generateSamplesInCircle(tinyCanvasCircle.width * .5, tinyCanvasCircle.height * .5, radius, minDist);
+      var center = new Point(tinyCanvasCircle.width * .5, tinyCanvasCircle.height * .5);
+      var samples = generateSamplesInCircle(center.x, center.y, radius, minDist);
       drawSamples(tinyCanvasCircle, samples, drawRadius, circlePalette);
       
+      tinyCanvasCircle.lineStyle(2., BOUND_COLOR, .75)
+        .drawCircle(center.x, center.y, radius);
     });
     
     tinyCanvasCircle.canvas.click();
