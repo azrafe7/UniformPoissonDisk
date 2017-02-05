@@ -33,23 +33,7 @@ typedef Point = SimplePoint;
 
 
 typedef RejectionFunction = Point->Bool;
-
-typedef Settings = {
-  var topLeft:Point;
-  var bottomRight:Point;
-  var dimensions:Point;
-  var reject:Null<RejectionFunction>;
-  var minimumDistance:Float;
-  var cellSize:Float;
-  var gridWidth:Int; 
-  var gridHeight:Int;
-}
-
-typedef State = {
-  var grid:Array<Array<Point>>; // NB: Grid[y][x]
-  var activePoints:Array<Point>;
-  var points:Array<Point>;
-}
+typedef MinDistFunction = Point->Bool;
 
 
 /**
@@ -60,13 +44,29 @@ class UniformPoissonDisk {
 
   public var DEFAULT_POINTS_PER_ITERATION:Int = 30;
 
+  var topLeft:Point;
+  var bottomRight:Point;
+  var width:Float;
+  var height:Float;
+  
+  var reject:Null<RejectionFunction>;
+  var minDistance:Float;
+  
+  var grid:Array<Array<Point>>; // NB: Grid[y][x]
+  var gridWidth:Int; 
+  var gridHeight:Int;
+  var cellSize:Float;
+
+  var activePoints:Array<Point>;
+  var sampledPoints:Array<Point>;
+
   
   public function new():Void 
   {
     
   }
   
-  public function sampleCircle(center:Point, radius:Float, minimumDistance:Float, ?pointsPerIteration:Int):Array<Point> 
+  public function sampleCircle(center:Point, radius:Float, minDistance:Float, ?pointsPerIteration:Int):Array<Point> 
   {
     var topLeft = new Point(center.x - radius, center.y - radius);
     var bottomRight = new Point(center.x + radius, center.y + radius);
@@ -76,115 +76,108 @@ class UniformPoissonDisk {
       return distanceSquared(center, p) > radiusSquared;
     }
     
-    return sample(topLeft, bottomRight, minimumDistance, reject, pointsPerIteration);
+    return sample(topLeft, bottomRight, minDistance, reject, pointsPerIteration);
   }
 
-  public function sampleRectangle(topLeft:Point, bottomRight:Point, minimumDistance:Float, ?pointsPerIteration:Int):Array<Point>
+  public function sampleRectangle(topLeft:Point, bottomRight:Point, minDistance:Float, ?pointsPerIteration:Int):Array<Point>
   {
-    return sample(topLeft, bottomRight, minimumDistance, null, pointsPerIteration);
+    return sample(topLeft, bottomRight, minDistance, null, pointsPerIteration);
   }
 
   
-  public function sample(topLeft:Point, bottomRight:Point, minimumDistance:Float, ?reject:RejectionFunction, ?pointsPerIteration:Int):Array<Point>
+  public function sample(topLeft:Point, bottomRight:Point, minDistance:Float, ?reject:RejectionFunction, ?pointsPerIteration:Int):Array<Point>
   {
     if (pointsPerIteration == null) pointsPerIteration = DEFAULT_POINTS_PER_ITERATION;
 
-    var dimensions = new Point(bottomRight.x - topLeft.x, bottomRight.y - topLeft.y);
-    var cellSize = minimumDistance / Tools.SQUARE_ROOT_TWO;
+    this.topLeft = topLeft;
+    this.bottomRight = bottomRight;
+    this.minDistance = minDistance;
+    this.reject = reject;
     
-    var settings:Settings = 
-    {
-      topLeft : topLeft, bottomRight : bottomRight,
-      dimensions : dimensions,
-      cellSize : cellSize,
-      minimumDistance : minimumDistance,
-      reject : reject,
-      gridWidth : Std.int(dimensions.x / cellSize) + 1,
-      gridHeight : Std.int(dimensions.y / cellSize) + 1,
-    };
+    width = bottomRight.x - topLeft.x;
+    height = bottomRight.y - topLeft.y;
+    cellSize = minDistance / Tools.SQUARE_ROOT_TWO;
+    
+    gridWidth = Std.int(width / cellSize) + 1;
+    gridHeight = Std.int(height / cellSize) + 1;
 
-    var grid = new Array<Array<Point>>();
-    for (y in 0...settings.gridHeight) {
-      grid.push( [for (x in 0...settings.gridWidth) null] );
+    grid = new Array<Array<Point>>();
+    for (y in 0...gridHeight) {
+      grid.push( [for (x in 0...gridWidth) null] );
     }
     
-    var state:State = 
+    activePoints = new Array<Point>();
+    sampledPoints = new Array<Point>();
+
+    addFirstPoint();
+
+    while (activePoints.length != 0)
     {
-      activePoints : new Array<Point>(),
-      points : new Array<Point>(),
-      grid : grid,
-    };
+      var listIndex = Tools.randomInt(activePoints.length);
 
-    addFirstPoint(settings, state);
-
-    while (state.activePoints.length != 0)
-    {
-      var listIndex = Tools.randomInt(state.activePoints.length);
-
-      var point = state.activePoints[listIndex];
+      var point = activePoints[listIndex];
       var found = false;
 
       for (k in 0...pointsPerIteration) {
-        found = addNextPoint(point, settings, state);
+        found = addNextPoint(point);
         if (found) break;
       }
 
       if (!found)
-        state.activePoints.splice(listIndex, 1);
+        activePoints.splice(listIndex, 1);
     }
 
-    return state.points;
+    return sampledPoints;
   }
 
-  function addFirstPoint(settings:Settings, state:State):Void
+  function addFirstPoint():Void
   {
     var added = false;
     while (!added)
     {
       var d = Tools.randomFloat();
-      var xr = settings.topLeft.x + settings.dimensions.x * d;
+      var xr = topLeft.x + width * d;
 
       d = Tools.randomFloat();
-      var yr = settings.topLeft.y + settings.dimensions.y * d;
+      var yr = topLeft.y + height * d;
 
       var p = new Point(xr, yr);
-      if (settings.reject != null && settings.reject(p))
+      if (reject != null && reject(p))
         continue;
       
       added = true;
 
-      var index = pointToGridCoord(p, settings.topLeft, settings.cellSize);
+      var index = pointToGridCoords(p, topLeft, cellSize);
 
-      state.grid[Std.int(index.y)][Std.int(index.x)] = p;
+      grid[Std.int(index.y)][Std.int(index.x)] = p;
 
-      state.activePoints.push(p);
-      state.points.push(p);
+      activePoints.push(p);
+      sampledPoints.push(p);
     } 
   }
   
-  function addNextPoint(point:Point, settings:Settings, state:State):Bool
+  function addNextPoint(point:Point):Bool
   {
     var found = false;
-    var q = randomPointAround(point, settings.minimumDistance);
-    var mustReject = settings.reject != null && settings.reject(q);
+    var q = randomPointAround(point, minDistance);
+    var mustReject = reject != null && reject(q);
 
-    if (q.x >= settings.topLeft.x && q.x < settings.bottomRight.x && 
-        q.y > settings.topLeft.y && q.y < settings.bottomRight.y &&
-        (!mustReject))
+    if (q.x >= topLeft.x && q.x < bottomRight.x && 
+        q.y >= topLeft.y && q.y < bottomRight.y &&
+        !mustReject)
     {
-      var qIndex = pointToGridCoord(q, settings.topLeft, settings.cellSize);
+      var qIndex = pointToGridCoords(q, topLeft, cellSize);
       var tooClose = false;
 
       //for (var i = (int) Math.Max(0, qIndex.x - 2); i < Math.Min(settings.GridWidth, qIndex.x + 3) && !tooClose; i++)
       var i = Std.int(Math.max(0, qIndex.x - 2));
-      while (i < Math.min(settings.gridWidth, qIndex.x + 3) && !tooClose)
+      while (i < Math.min(gridWidth, qIndex.x + 3) && !tooClose)
       {
         //for (var j = (int) Math.Max(0, qIndex.y - 2); j < Math.Min(settings.GridHeight, qIndex.y + 3) && !tooClose; j++)
         var j = Std.int(Math.max(0, qIndex.y - 2));
-        while (j < Math.min(settings.gridHeight, qIndex.y + 3) && !tooClose)
+        while (j < Math.min(gridHeight, qIndex.y + 3) && !tooClose)
         {
-          var cellState = state.grid[j][i];
-          if (state.grid[j][i] != null && distance(state.grid[j][i], q) < settings.minimumDistance) {
+          if (grid[j][i] != null && distance(grid[j][i], q) < minDistance) {
             tooClose = true;
           }
           j++;
@@ -195,18 +188,18 @@ class UniformPoissonDisk {
       if (!tooClose)
       {
         found = true;
-        state.activePoints.push(q);
-        state.points.push(q);
-        state.grid[Std.int(qIndex.y)][Std.int(qIndex.x)] = q;
+        activePoints.push(q);
+        sampledPoints.push(q);
+        grid[Std.int(qIndex.y)][Std.int(qIndex.x)] = q;
       }
     }
     return found;
   }
   
-  public function randomPointAround(center:Point, minimumDistance:Float):Point
+  public function randomPointAround(center:Point, minDistance:Float):Point
   {
     var d = Tools.randomFloat();
-    var radius = minimumDistance + minimumDistance * d;
+    var radius = minDistance + minDistance * d;
 
     d = Tools.randomFloat();
     var angle = Tools.TWO_PI * d;
@@ -217,9 +210,9 @@ class UniformPoissonDisk {
     return new Point((center.x + x), (center.y + y));
   }
   
-  public function pointToGridCoord(point:Point, origin:Point, cellSize:Float):Point
+  public function pointToGridCoords(point:Point, topLeft:Point, cellSize:Float):Point
   {
-    return new Point(Std.int((point.x - origin.x) / cellSize), Std.int((point.y - origin.y) / cellSize));
+    return new Point(Std.int((point.x - topLeft.x) / cellSize), Std.int((point.y - topLeft.y) / cellSize));
   }
   
   public function distanceSquared(p:Point, q:Point):Float 
