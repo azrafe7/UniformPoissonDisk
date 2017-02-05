@@ -26,7 +26,7 @@ class JsDemo {
   static var OVERRIDE_DEFAULT_POINTS_PER_ITERATION:Null<Int> = null; // 2;
   
   // palettes
-  static var BOUND_COLOR:Int = 0xC0C0C0;
+  static var BOUNDS_COLOR:Int = 0xC0C0C0;
   
   static var RED_PALETTE:Palette = [0xFF0000, 0xF52000, 0xE01515, 0xFF3010];
   static var GREEN_PALETTE:Palette = [0x00FF00, 0x00F520, 0x15E015, 0x10FF30];
@@ -44,16 +44,30 @@ class JsDemo {
     document.body.appendChild(tinyCanvasRect.canvas);
     initTinyCanvas(tinyCanvasRect, X, Y);
     
-    tinyCanvasRect.canvas.addEventListener("click", function(event) {
+    var canvasRectOnClick = function(?event) {
       
       var minDist = 15;
       var drawRadius = minDist * .85;
-      var samples = generateSamplesInRect(0, 0, tinyCanvasRect.width, tinyCanvasRect.height, minDist);
+      var rect = {
+        x: 15, 
+        y: 15, 
+        width: tinyCanvasRect.width - 30,
+        height: tinyCanvasRect.height - 30
+      }
+      var samples = generateSamplesInRect(rect.x, rect.y, rect.width, rect.height, minDist);
+      
+      clearCanvas(tinyCanvasRect, rectPalette);
+      
+      // draw rect from which we're sampling
+      tinyCanvasRect.lineStyle(2., BOUNDS_COLOR, .75)
+        .drawRect(rect.x, rect.y, rect.width, rect.height);
+        
       drawSamples(tinyCanvasRect, samples, drawRadius, rectPalette);
       
-    });
+    };
     
-    tinyCanvasRect.canvas.click();
+    tinyCanvasRect.canvas.addEventListener("click", canvasRectOnClick);
+    canvasRectOnClick();
     
     
     // sampleCircle
@@ -61,20 +75,26 @@ class JsDemo {
     document.body.appendChild(tinyCanvasCircle.canvas);
     initTinyCanvas(tinyCanvasCircle, X + WIDTH + SPACE, Y);
     
-    tinyCanvasCircle.canvas.addEventListener("click", function(event) {
+    var canvasCircleOnClick = function(?event) {
       
       var minDist = 15;
       var radius = tinyCanvasCircle.width * .45;
       var drawRadius = minDist * .75;
       var center = new Point(tinyCanvasCircle.width * .5, tinyCanvasCircle.height * .5);
       var samples = generateSamplesInCircle(center.x, center.y, radius, minDist);
+      
+      clearCanvas(tinyCanvasCircle, circlePalette);
+      
+      // draw circle from which we're sampling
+      tinyCanvasCircle.lineStyle(2., BOUNDS_COLOR, .75)
+        .drawCircle(center.x, center.y, radius);
+      
       drawSamples(tinyCanvasCircle, samples, drawRadius, circlePalette);
       
-      tinyCanvasCircle.lineStyle(2., BOUND_COLOR, .75)
-        .drawCircle(center.x, center.y, radius);
-    });
+    };
     
-    tinyCanvasCircle.canvas.click();
+    tinyCanvasCircle.canvas.addEventListener("click", canvasCircleOnClick);
+    canvasCircleOnClick();
   }
   
   // make canvas' position absolute and set some styles on it
@@ -111,12 +131,6 @@ class JsDemo {
     var color = palette != null ? palette[0] : 0xFF0000;
     var fillAlpha = .8;
     
-    // clear, add border and set new lineStyle
-    tinyCanvas
-      .clear()
-      .lineStyle(3, color, 1)
-      .drawRect(0, 0, tinyCanvas.width, tinyCanvas.height);
-    
     // draw circles at sampled points
     for (p in samples) {
       color = getRandomColorFrom(palette, color);
@@ -127,6 +141,16 @@ class JsDemo {
       tinyCanvas.drawCircle(p.x, p.y, radius);
       tinyCanvas.endFill();
     }
+  }
+  
+  // clear and add border
+  static function clearCanvas(tinyCanvas:TinyCanvas, ?palette:Palette):Void {
+    var color = palette != null ? palette[0] : 0xFF0000;
+    
+    tinyCanvas
+      .clear()
+      .lineStyle(3, color, 1)
+      .drawRect(0, 0, tinyCanvas.width, tinyCanvas.height);
   }
   
   static function getRandomColorFrom(palette:Palette, defaultColor:Int):Int {

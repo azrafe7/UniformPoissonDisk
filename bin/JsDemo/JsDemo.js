@@ -5,17 +5,28 @@ JsDemo.main = function() {
 	var tinyCanvasRect = new TinyCanvas(JsDemo.WIDTH,JsDemo.HEIGHT,"canvas-samplerect");
 	window.document.body.appendChild(tinyCanvasRect.canvas);
 	JsDemo.initTinyCanvas(tinyCanvasRect,JsDemo.X,JsDemo.Y);
-	tinyCanvasRect.canvas.addEventListener("click",function(event) {
+	var canvasRectOnClick = function(event) {
 		var minDist = 15;
 		var drawRadius = minDist * .85;
-		var samples = JsDemo.generateSamplesInRect(0,0,tinyCanvasRect.canvas.width,tinyCanvasRect.canvas.height,minDist);
+		var rect_y;
+		var rect_x;
+		var rect_width;
+		var rect_height;
+		rect_x = 15;
+		rect_y = 15;
+		rect_width = tinyCanvasRect.canvas.width - 30;
+		rect_height = tinyCanvasRect.canvas.height - 30;
+		var samples = JsDemo.generateSamplesInRect(rect_x,rect_y,rect_width,rect_height,minDist);
+		JsDemo.clearCanvas(tinyCanvasRect,JsDemo.rectPalette);
+		TinyCanvas.drawRect(TinyCanvas.lineStyle(tinyCanvasRect,2.,JsDemo.BOUNDS_COLOR,.75),rect_x,rect_y,rect_width,rect_height);
 		JsDemo.drawSamples(tinyCanvasRect,samples,drawRadius,JsDemo.rectPalette);
-	});
-	tinyCanvasRect.canvas.click();
+	};
+	tinyCanvasRect.canvas.addEventListener("click",canvasRectOnClick);
+	canvasRectOnClick();
 	var tinyCanvasCircle = new TinyCanvas(JsDemo.WIDTH,JsDemo.HEIGHT,"canvas-samplecircle");
 	window.document.body.appendChild(tinyCanvasCircle.canvas);
 	JsDemo.initTinyCanvas(tinyCanvasCircle,JsDemo.X + JsDemo.WIDTH + JsDemo.SPACE,JsDemo.Y);
-	tinyCanvasCircle.canvas.addEventListener("click",function(event1) {
+	var canvasCircleOnClick = function(event1) {
 		var minDist1 = 15;
 		var radius = tinyCanvasCircle.canvas.width * .45;
 		var drawRadius1 = minDist1 * .75;
@@ -23,10 +34,12 @@ JsDemo.main = function() {
 		var center_x = tinyCanvasCircle.canvas.width * .5;
 		center_y = tinyCanvasCircle.canvas.height * .5;
 		var samples1 = JsDemo.generateSamplesInCircle(center_x,center_y,radius,minDist1);
+		JsDemo.clearCanvas(tinyCanvasCircle,JsDemo.circlePalette);
+		TinyCanvas.drawCircle(TinyCanvas.lineStyle(tinyCanvasCircle,2.,JsDemo.BOUNDS_COLOR,.75),center_x,center_y,radius);
 		JsDemo.drawSamples(tinyCanvasCircle,samples1,drawRadius1,JsDemo.circlePalette);
-		TinyCanvas.drawCircle(TinyCanvas.lineStyle(tinyCanvasCircle,2.,JsDemo.BOUND_COLOR,.75),center_x,center_y,radius);
-	});
-	tinyCanvasCircle.canvas.click();
+	};
+	tinyCanvasCircle.canvas.addEventListener("click",canvasCircleOnClick);
+	canvasCircleOnClick();
 };
 JsDemo.initTinyCanvas = function(tinyCanvas,x,y) {
 	var style = tinyCanvas.canvas.style;
@@ -50,7 +63,6 @@ JsDemo.generateSamplesInCircle = function(cx,cy,radius,minDist) {
 JsDemo.drawSamples = function(tinyCanvas,samples,radius,palette) {
 	var color = palette != null ? palette[0] : 16711680;
 	var fillAlpha = .8;
-	TinyCanvas.drawRect(TinyCanvas.lineStyle(TinyCanvas.clear(tinyCanvas),3,color,1),0,0,tinyCanvas.canvas.width,tinyCanvas.canvas.height);
 	var _g = 0;
 	while(_g < samples.length) {
 		var p = samples[_g];
@@ -62,6 +74,10 @@ JsDemo.drawSamples = function(tinyCanvas,samples,radius,palette) {
 		TinyCanvas.drawCircle(tinyCanvas,p.x,p.y,radius);
 		TinyCanvas.endFill(tinyCanvas);
 	}
+};
+JsDemo.clearCanvas = function(tinyCanvas,palette) {
+	var color = palette != null ? palette[0] : 16711680;
+	TinyCanvas.drawRect(TinyCanvas.lineStyle(TinyCanvas.clear(tinyCanvas),3,color,1),0,0,tinyCanvas.canvas.width,tinyCanvas.canvas.height);
 };
 JsDemo.getRandomColorFrom = function(palette,defaultColor) {
 	if(palette == null || palette.length == 0) {
@@ -361,7 +377,7 @@ JsDemo.Y = 15;
 JsDemo.SPACE = 15;
 JsDemo.WIDTH = 300;
 JsDemo.HEIGHT = 300;
-JsDemo.BOUND_COLOR = 12632256;
+JsDemo.BOUNDS_COLOR = 12632256;
 JsDemo.RED_PALETTE = [16711680,16064512,14685461,16723984];
 JsDemo.GREEN_PALETTE = [65280,62752,1433621,1113904];
 JsDemo.FIRE_PALETTE = [16601145,16610051,16620879,16638337,16598019,16601145,16610051,16620879];
