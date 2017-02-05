@@ -13,6 +13,8 @@
  * The algorithm is from the "Fast Poisson Disk Sampling in Arbitrary Dimensions" paper by Robert Bridson
  * http://www.cs.ubc.ca/~rbridson/docs/bridson-siggraph07-poissondisk.pdf
  * 
+ * And with filtering ideas from:
+ * https://github.com/corporateshark/poisson-disk-generator
  */   
  
 package upd;
