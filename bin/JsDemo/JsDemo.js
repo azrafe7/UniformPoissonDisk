@@ -54,6 +54,7 @@ JsDemo.drawSamples = function(tinyCanvas,samples,radius,palette) {
 		color = JsDemo.getRandomColorFrom(palette,color);
 		TinyCanvas.lineStyle(tinyCanvas,1.5,color,1);
 		TinyCanvas.beginFill(tinyCanvas,color,fillAlpha);
+		TinyCanvas.drawCircle(tinyCanvas,p.x,p.y,.25);
 		TinyCanvas.drawCircle(tinyCanvas,p.x,p.y,radius);
 		TinyCanvas.endFill(tinyCanvas);
 	}

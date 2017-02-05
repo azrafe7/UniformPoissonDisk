@@ -118,6 +118,7 @@ class JsDemo {
       
       tinyCanvas.lineStyle(1.5, color, 1);
       tinyCanvas.beginFill(color, fillAlpha);
+      tinyCanvas.drawCircle(p.x, p.y, .25); // center dot
       tinyCanvas.drawCircle(p.x, p.y, radius);
       tinyCanvas.endFill();
     }
