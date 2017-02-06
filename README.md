@@ -10,7 +10,7 @@ Next step is adding the possibility to customize the function used to reject/inc
 
 ## References
 
- - http://devmag.org.za/2009/05/03/poisson-disk-sampling/
+ - http://devmag.org.za/2009/05/03/poisson-disk-sampling/ (read this!)
  - http://theinstructionlimit.com/fast-uniform-poisson-disk-sampling-in-c (by Renaud Bédard)
  - http://www.luma.co.za/labs/2008/02/27/poisson-disk-sampling/
 
