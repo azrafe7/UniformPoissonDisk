@@ -44,6 +44,7 @@ typedef MinDistFunction = Point->Bool;
 class UniformPoissonDisk {
 
   static public var DEFAULT_POINTS_PER_ITERATION:Int = 30;
+  static public var DEFAULT_FIRST_POINT_TRIES:Int = 1000;
 
   var pointsPerIteration:Int = DEFAULT_POINTS_PER_ITERATION;
   
@@ -111,6 +112,7 @@ class UniformPoissonDisk {
     this.sampledPoints = new Array<Point>();
   }
   
+  // this is the workhorse
   public function sample(topLeft:Point, bottomRight:Point, minDistance:Float, ?reject:RejectionFunction, ?pointsPerIteration:Int):Array<Point>
   {
     init(topLeft, bottomRight, minDistance, reject, pointsPerIteration);
@@ -129,7 +131,7 @@ class UniformPoissonDisk {
         if (found) break;
       }
 
-      if (!found)
+      if (!found) // remove point
         activePoints.splice(randomIndex, 1);
     }
 
@@ -139,30 +141,44 @@ class UniformPoissonDisk {
   function addFirstPoint():Void
   {
     var added = false;
-    while (!added)
+    var tries = DEFAULT_FIRST_POINT_TRIES;
+    
+    while (!added && tries > 0)
     {
-      var d = Tools.randomFloat();
-      var xr = topLeft.x + width * d;
+      tries--;
 
-      d = Tools.randomFloat();
-      var yr = topLeft.y + height * d;
+      var rndX = topLeft.x + width * Tools.randomFloat();
+      var rndY = topLeft.y + height * Tools.randomFloat();
 
-      var p = new Point(xr, yr);
+      var p = new Point(rndX, rndY);
       if (reject != null && reject(p))
         continue;
       
       added = true;
 
       var index = pointToGridCoords(p, topLeft, cellSize);
-
-      grid[Std.int(index.y)][Std.int(index.x)] = p;
-
-      activePoints.push(p);
-      sampledPoints.push(p);
+      addSampledPoint(p, index);
     } 
   }
   
-  function isInRectangle(point:Point):Bool {
+  function addNextPoint(point:Point):Bool
+  {
+    var q = randomPointAround(point, minDistance);
+    var mustReject = (reject != null && reject(q));
+
+    if (isInRectangle(q) && !mustReject)
+    {
+      var qIndex = pointToGridCoords(q, topLeft, cellSize);
+      if (!isInNeighbourhood(q, qIndex))
+      {
+        addSampledPoint(q, qIndex);
+        return true;
+      }
+    }
+    return false;
+  }
+  
+  inline function isInRectangle(point:Point):Bool {
     return (point.x >= topLeft.x && point.x < bottomRight.x && 
             point.y >= topLeft.y && point.y < bottomRight.y);
   }
@@ -186,33 +202,11 @@ class UniformPoissonDisk {
     return false;
   }
   
-  function addPoint(point:Point) {
-    var index = pointToGridCoords(point, topLeft, cellSize);
+  inline function addSampledPoint(point:Point, index:GridIndex):Void
+  {
     activePoints.push(point);
     sampledPoints.push(point);
     grid[Std.int(index.y)][Std.int(index.x)] = point;
-  }
-  
-  function addNextPoint(point:Point):Bool
-  {
-    var found = false;
-    var q = randomPointAround(point, minDistance);
-    var mustReject = reject != null && reject(q);
-
-    if (isInRectangle(q) && !mustReject)
-    {
-      var qIndex = pointToGridCoords(q, topLeft, cellSize);
-      var tooClose = isInNeighbourhood(q, qIndex);
-      
-      if (!tooClose)
-      {
-        found = true;
-        activePoints.push(q);
-        sampledPoints.push(q);
-        grid[Std.int(qIndex.y)][Std.int(qIndex.x)] = q;
-      }
-    }
-    return found;
   }
   
   // random point in the annulus centered at `center` and with `minRadius = minDistance` and `maxRadius = 2 * minDistance`
@@ -230,12 +224,12 @@ class UniformPoissonDisk {
     return new Point((center.x + x), (center.y + y));
   }
   
-  public function pointToGridCoords(point:Point, topLeft:Point, cellSize:Float):Point
+  inline function pointToGridCoords(point:Point, topLeft:Point, cellSize:Float):Point
   {
     return new Point(Std.int((point.x - topLeft.x) / cellSize), Std.int((point.y - topLeft.y) / cellSize));
   }
   
-  public function distanceSquared(p:Point, q:Point):Float 
+  inline public function distanceSquared(p:Point, q:Point):Float 
   {
     var dx = p.x - q.x;
     var dy = p.y - q.y;
