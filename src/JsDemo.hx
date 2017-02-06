@@ -19,8 +19,8 @@ class JsDemo {
   static var Y:Int = 15;
   static var SPACE:Int = 15;
   
-  static var WIDTH:Int = 300;
-  static var HEIGHT:Int = 300;
+  static var WIDTH:Int = 200;
+  static var HEIGHT:Int = 200;
   
   // (defaults to 30, try with 2)
   static var OVERRIDE_DEFAULT_POINTS_PER_ITERATION:Null<Int> = null; // 2;
@@ -124,6 +124,20 @@ class JsDemo {
     var upd = new UniformPoissonDisk();
     
     return upd.sampleCircle(center, radius, minDist, OVERRIDE_DEFAULT_POINTS_PER_ITERATION);
+  }
+  
+  // generate sample points inside the specified rectangle using a custom reject function
+  static function generateCustomSamples(x:Float, y:Float, width:Float, height:Float, minDist:Float):Array<Point> {
+    var topLeft = new Point(x, y);
+    var bottomRight = new Point(x + width, y + height);
+    
+    var upd = new UniformPoissonDisk();
+    
+    function reject(p:Point):Bool {
+      return (p.x < width * .5 && p.y < height * .5) || (p.x > width * .5 && p.y > height * .5);
+    }
+    
+    return upd.sample(topLeft, bottomRight, minDist, reject, OVERRIDE_DEFAULT_POINTS_PER_ITERATION);
   }
   
   // draw samples onto tinyCanvas, optionally using a color palette

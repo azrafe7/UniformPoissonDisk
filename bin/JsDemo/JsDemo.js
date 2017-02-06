@@ -60,6 +60,23 @@ JsDemo.generateSamplesInCircle = function(cx,cy,radius,minDist) {
 	var upd1 = new upd_UniformPoissonDisk();
 	return upd1.sampleCircle(center,radius,minDist,JsDemo.OVERRIDE_DEFAULT_POINTS_PER_ITERATION);
 };
+JsDemo.generateCustomSamples = function(x,y,width,height,minDist) {
+	var topLeft = new upd_SimplePoint(x,y);
+	var bottomRight = new upd_SimplePoint(x + width,y + height);
+	var upd1 = new upd_UniformPoissonDisk();
+	var reject = function(p) {
+		if(!(p.x < width * .5 && p.y < height * .5)) {
+			if(p.x > width * .5) {
+				return p.y > height * .5;
+			} else {
+				return false;
+			}
+		} else {
+			return true;
+		}
+	};
+	return upd1.sample(topLeft,bottomRight,minDist,reject,JsDemo.OVERRIDE_DEFAULT_POINTS_PER_ITERATION);
+};
 JsDemo.drawSamples = function(tinyCanvas,samples,radius,palette) {
 	var color = palette != null ? palette[0] : 16711680;
 	var fillAlpha = .8;
@@ -240,118 +257,162 @@ var upd_SimplePoint = function(x,y) {
 	this.y = y;
 };
 var upd_UniformPoissonDisk = function() {
-	this.DEFAULT_POINTS_PER_ITERATION = 30;
+	this.pointsPerIteration = upd_UniformPoissonDisk.DEFAULT_POINTS_PER_ITERATION;
 };
 upd_UniformPoissonDisk.prototype = {
-	sampleCircle: function(center,radius,minimumDistance,pointsPerIteration) {
-		if(pointsPerIteration == null) {
-			pointsPerIteration = this.DEFAULT_POINTS_PER_ITERATION;
-		}
+	sampleCircle: function(center,radius,minDistance,pointsPerIteration) {
+		var _gthis = this;
 		var topLeft = new upd_SimplePoint(center.x - radius,center.y - radius);
 		var bottomRight = new upd_SimplePoint(center.x + radius,center.y + radius);
-		return this.sample(topLeft,bottomRight,radius,minimumDistance,pointsPerIteration);
+		var radiusSquared = radius * radius;
+		var reject = function(p) {
+			var dx = center.x - p.x;
+			var dy = center.y - p.y;
+			return dx * dx + dy * dy > radiusSquared;
+		};
+		return this.sample(topLeft,bottomRight,minDistance,reject,pointsPerIteration);
 	}
-	,sampleRectangle: function(topLeft,bottomRight,minimumDistance,pointsPerIteration) {
+	,sampleRectangle: function(topLeft,bottomRight,minDistance,pointsPerIteration) {
+		return this.sample(topLeft,bottomRight,minDistance,null,pointsPerIteration);
+	}
+	,init: function(topLeft,bottomRight,minDistance,reject,pointsPerIteration) {
 		if(pointsPerIteration == null) {
-			pointsPerIteration = this.DEFAULT_POINTS_PER_ITERATION;
+			this.pointsPerIteration = upd_UniformPoissonDisk.DEFAULT_POINTS_PER_ITERATION;
 		}
-		return this.sample(topLeft,bottomRight,null,minimumDistance,pointsPerIteration);
-	}
-	,sample: function(topLeft,bottomRight,rejectionDistance,minimumDistance,pointsPerIteration) {
-		var dimensions = new upd_SimplePoint(bottomRight.x - topLeft.x,bottomRight.y - topLeft.y);
-		var cellSize = minimumDistance / upd_Tools.SQUARE_ROOT_TWO;
-		var settings = { topLeft : topLeft, bottomRight : bottomRight, dimensions : dimensions, center : new upd_SimplePoint((topLeft.x + bottomRight.x) / 2,(topLeft.y + bottomRight.y) / 2), cellSize : cellSize, minimumDistance : minimumDistance, rejectionSqDistance : rejectionDistance == null ? null : rejectionDistance * rejectionDistance, gridWidth : (dimensions.x / cellSize | 0) + 1, gridHeight : (dimensions.y / cellSize | 0) + 1};
-		var grid = [];
+		this.topLeft = topLeft;
+		this.bottomRight = bottomRight;
+		this.minDistance = minDistance;
+		this.reject = reject;
+		this.width = bottomRight.x - topLeft.x;
+		this.height = bottomRight.y - topLeft.y;
+		this.cellSize = minDistance / upd_Tools.SQUARE_ROOT_TWO;
+		this.gridWidth = (this.width / this.cellSize | 0) + 1;
+		this.gridHeight = (this.height / this.cellSize | 0) + 1;
+		this.grid = [];
 		var _g1 = 0;
-		var _g = settings.gridHeight;
+		var _g = this.gridHeight;
 		while(_g1 < _g) {
 			var y = _g1++;
+			var tmp = this.grid;
 			var _g2 = [];
 			var _g4 = 0;
-			var _g3 = settings.gridWidth;
+			var _g3 = this.gridWidth;
 			while(_g4 < _g3) {
 				var x = _g4++;
 				_g2.push(null);
 			}
-			grid.push(_g2);
+			tmp.push(_g2);
 		}
-		var state = { activePoints : [], points : [], grid : grid};
-		this.addFirstPoint(settings,state);
-		while(state.activePoints.length != 0) {
-			var listIndex = Std.random(state.activePoints.length);
-			var point = state.activePoints[listIndex];
+		this.activePoints = [];
+		this.sampledPoints = [];
+	}
+	,sample: function(topLeft,bottomRight,minDistance,reject,pointsPerIteration) {
+		this.init(topLeft,bottomRight,minDistance,reject,pointsPerIteration);
+		this.addFirstPoint();
+		while(this.activePoints.length != 0) {
+			var randomIndex = Std.random(this.activePoints.length);
+			var point = this.activePoints[randomIndex];
 			var found = false;
-			var _g11 = 0;
-			var _g5 = pointsPerIteration;
-			while(_g11 < _g5) {
-				var k = _g11++;
-				if(!found) {
-					found = this.addNextPoint(point,settings,state);
-				} else {
-					found = true;
+			var _g1 = 0;
+			var _g = this.pointsPerIteration;
+			while(_g1 < _g) {
+				var k = _g1++;
+				found = this.addNextPoint(point);
+				if(found) {
+					break;
 				}
 			}
 			if(!found) {
-				state.activePoints.splice(listIndex,1);
+				this.activePoints.splice(randomIndex,1);
 			}
 		}
-		return state.points;
+		return this.sampledPoints;
 	}
-	,addFirstPoint: function(settings,state) {
+	,addFirstPoint: function() {
 		var added = false;
-		while(!added) {
-			var d = Math.random();
-			var xr = settings.topLeft.x + settings.dimensions.x * d;
-			d = Math.random();
-			var yr = settings.topLeft.y + settings.dimensions.y * d;
-			var p = new upd_SimplePoint(xr,yr);
-			if(settings.rejectionSqDistance != null && this.distanceSquared(settings.center,p) > settings.rejectionSqDistance) {
+		var tries = upd_UniformPoissonDisk.DEFAULT_FIRST_POINT_TRIES;
+		while(!added && tries > 0) {
+			--tries;
+			var rndX = this.topLeft.x + this.width * Math.random();
+			var rndY = this.topLeft.y + this.height * Math.random();
+			var p = new upd_SimplePoint(rndX,rndY);
+			if(this.reject != null && this.reject(p)) {
 				continue;
 			}
 			added = true;
-			var index = this.denormalize(p,settings.topLeft,settings.cellSize);
-			state.grid[index.y | 0][index.x | 0] = p;
-			state.activePoints.push(p);
-			state.points.push(p);
+			var index_y;
+			var index_x;
+			var topLeft = this.topLeft;
+			var cellSize = this.cellSize;
+			index_x = (p.x - topLeft.x) / cellSize | 0;
+			index_y = (p.y - topLeft.y) / cellSize | 0;
+			this.activePoints.push(p);
+			this.sampledPoints.push(p);
+			this.grid[index_y | 0][index_x | 0] = p;
 		}
 	}
-	,addNextPoint: function(point,settings,state) {
-		var found = false;
-		var q = this.randomPointAround(point,settings.minimumDistance);
-		if(q.x >= settings.topLeft.x && q.x < settings.bottomRight.x && q.y > settings.topLeft.y && q.y < settings.bottomRight.y && (settings.rejectionSqDistance == null || this.distanceSquared(settings.center,q) <= settings.rejectionSqDistance)) {
-			var qIndex = this.denormalize(q,settings.topLeft,settings.cellSize);
-			var tooClose = false;
-			var i = Math.max(0,qIndex.x - 2) | 0;
-			while(i < Math.min(settings.gridWidth,qIndex.x + 3) && !tooClose) {
-				var j = Math.max(0,qIndex.y - 2) | 0;
-				while(j < Math.min(settings.gridHeight,qIndex.y + 3) && !tooClose) {
-					if(state.grid[j][i] != null && Math.sqrt(this.distanceSquared(state.grid[j][i],q)) < settings.minimumDistance) {
-						tooClose = true;
-					}
-					++j;
+	,addNextPoint: function(point) {
+		var q = this.randomPointAround(point,this.minDistance);
+		var mustReject = this.reject != null && this.reject(q);
+		if(q.x >= this.topLeft.x && q.x < this.bottomRight.x && q.y >= this.topLeft.y && q.y < this.bottomRight.y && !mustReject) {
+			var topLeft = this.topLeft;
+			var cellSize = this.cellSize;
+			var qIndex = new upd_SimplePoint((q.x - topLeft.x) / cellSize | 0,(q.y - topLeft.y) / cellSize | 0);
+			if(!this.isInNeighbourhood(q,qIndex)) {
+				this.activePoints.push(q);
+				this.sampledPoints.push(q);
+				this.grid[qIndex.y | 0][qIndex.x | 0] = q;
+				return true;
+			}
+		}
+		return false;
+	}
+	,isInRectangle: function(point) {
+		if(point.x >= this.topLeft.x && point.x < this.bottomRight.x && point.y >= this.topLeft.y) {
+			return point.y < this.bottomRight.y;
+		} else {
+			return false;
+		}
+	}
+	,isInNeighbourhood: function(point,index) {
+		var i = Math.max(0,index.x - 2) | 0;
+		while(i < Math.min(this.gridWidth,index.x + 3)) {
+			var j = Math.max(0,index.y - 2) | 0;
+			while(j < Math.min(this.gridHeight,index.y + 3)) {
+				var tmp;
+				if(this.grid[j][i] != null) {
+					var p = this.grid[j][i];
+					var dx = p.x - point.x;
+					var dy = p.y - point.y;
+					tmp = Math.sqrt(dx * dx + dy * dy) < this.minDistance;
+				} else {
+					tmp = false;
 				}
-				++i;
+				if(tmp) {
+					return true;
+				}
+				++j;
 			}
-			if(!tooClose) {
-				found = true;
-				state.activePoints.push(q);
-				state.points.push(q);
-				state.grid[qIndex.y | 0][qIndex.x | 0] = q;
-			}
+			++i;
 		}
-		return found;
+		return false;
 	}
-	,randomPointAround: function(center,minimumDistance) {
+	,addSampledPoint: function(point,index) {
+		this.activePoints.push(point);
+		this.sampledPoints.push(point);
+		this.grid[index.y | 0][index.x | 0] = point;
+	}
+	,randomPointAround: function(center,minDistance) {
 		var d = Math.random();
-		var radius = minimumDistance + minimumDistance * d;
+		var radius = minDistance + minDistance * d;
 		d = Math.random();
 		var angle = upd_Tools.TWO_PI * d;
-		var newX = radius * Math.sin(angle);
-		var newY = radius * Math.cos(angle);
-		return new upd_SimplePoint(center.x + newX,center.y + newY);
+		var x = radius * Math.sin(angle);
+		var y = radius * Math.cos(angle);
+		return new upd_SimplePoint(center.x + x,center.y + y);
 	}
-	,denormalize: function(point,origin,cellSize) {
-		return new upd_SimplePoint((point.x - origin.x) / cellSize | 0,(point.y - origin.y) / cellSize | 0);
+	,pointToGridCoords: function(point,topLeft,cellSize) {
+		return new upd_SimplePoint((point.x - topLeft.x) / cellSize | 0,(point.y - topLeft.y) / cellSize | 0);
 	}
 	,distanceSquared: function(p,q) {
 		var dx = p.x - q.x;
@@ -359,7 +420,9 @@ upd_UniformPoissonDisk.prototype = {
 		return dx * dx + dy * dy;
 	}
 	,distance: function(p,q) {
-		return Math.sqrt(this.distanceSquared(p,q));
+		var dx = p.x - q.x;
+		var dy = p.y - q.y;
+		return Math.sqrt(dx * dx + dy * dy);
 	}
 };
 var upd_Tools = function() { };
@@ -375,8 +438,8 @@ upd_Tools.randomFloat = function(upperBound) {
 JsDemo.X = 15;
 JsDemo.Y = 15;
 JsDemo.SPACE = 15;
-JsDemo.WIDTH = 300;
-JsDemo.HEIGHT = 300;
+JsDemo.WIDTH = 200;
+JsDemo.HEIGHT = 200;
 JsDemo.BOUNDS_COLOR = 12632256;
 JsDemo.RED_PALETTE = [16711680,16064512,14685461,16723984];
 JsDemo.GREEN_PALETTE = [65280,62752,1433621,1113904];
@@ -384,6 +447,8 @@ JsDemo.FIRE_PALETTE = [16601145,16610051,16620879,16638337,16598019,16601145,166
 JsDemo.GRASS_PALETTE = [11137665,12249985,8181122,4116355,55684,5894785,12245889,8189314];
 JsDemo.rectPalette = JsDemo.FIRE_PALETTE;
 JsDemo.circlePalette = JsDemo.GRASS_PALETTE;
+upd_UniformPoissonDisk.DEFAULT_POINTS_PER_ITERATION = 30;
+upd_UniformPoissonDisk.DEFAULT_FIRST_POINT_TRIES = 1000;
 upd_Tools.PI = Math.PI;
 upd_Tools.HALF_PI = Math.PI / 2;
 upd_Tools.TWO_PI = Math.PI * 2;
