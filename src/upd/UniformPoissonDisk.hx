@@ -32,6 +32,7 @@ package upd;
 typedef Point = SimplePoint;
 
 
+typedef GridIndex = Point;
 typedef RejectionFunction = Point->Bool;
 typedef MinDistFunction = Point->Bool;
 
@@ -156,35 +157,41 @@ class UniformPoissonDisk {
     } 
   }
   
+  function inRect(point:Point):Bool {
+    return (point.x >= topLeft.x && point.x < bottomRight.x && 
+            point.y >= topLeft.y && point.y < bottomRight.y);
+  }
+
+  // iterate the grid over a 5x5 square around `point` (identified by `index`)
+  function inNeighbourhood(point:Point, index:GridIndex):Bool {
+    var i = Std.int(Math.max(0, index.x - 2));
+    while (i < Math.min(gridWidth, index.x + 3))
+    {
+      //for (var j = (int) Math.Max(0, qIndex.y - 2); j < Math.Min(settings.GridHeight, qIndex.y + 3) && !tooClose; j++)
+      var j = Std.int(Math.max(0, index.y - 2));
+      while (j < Math.min(gridHeight, index.y + 3))
+      {
+        if (grid[j][i] != null && distance(grid[j][i], point) < minDistance) {
+          return true;
+        }
+        j++;
+      }
+      i++;
+    }
+    return false;
+  }
+  
   function addNextPoint(point:Point):Bool
   {
     var found = false;
     var q = randomPointAround(point, minDistance);
     var mustReject = reject != null && reject(q);
 
-    if (q.x >= topLeft.x && q.x < bottomRight.x && 
-        q.y >= topLeft.y && q.y < bottomRight.y &&
-        !mustReject)
+    if (inRect(q) && !mustReject)
     {
       var qIndex = pointToGridCoords(q, topLeft, cellSize);
-      var tooClose = false;
-
-      //for (var i = (int) Math.Max(0, qIndex.x - 2); i < Math.Min(settings.GridWidth, qIndex.x + 3) && !tooClose; i++)
-      var i = Std.int(Math.max(0, qIndex.x - 2));
-      while (i < Math.min(gridWidth, qIndex.x + 3) && !tooClose)
-      {
-        //for (var j = (int) Math.Max(0, qIndex.y - 2); j < Math.Min(settings.GridHeight, qIndex.y + 3) && !tooClose; j++)
-        var j = Std.int(Math.max(0, qIndex.y - 2));
-        while (j < Math.min(gridHeight, qIndex.y + 3) && !tooClose)
-        {
-          if (grid[j][i] != null && distance(grid[j][i], q) < minDistance) {
-            tooClose = true;
-          }
-          j++;
-        }
-        i++;
-      }
-
+      var tooClose = inNeighbourhood(q, qIndex);
+      
       if (!tooClose)
       {
         found = true;
