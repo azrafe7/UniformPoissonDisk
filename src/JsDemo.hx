@@ -2,9 +2,12 @@ package ;
 
 import upd.UniformPoissonDisk;
 
+import hxnoise.Perlin;
+
 import js.Browser.*;
 import js.html.*;
-
+import js.html.Int32Array;
+import js.html.Uint8Array;
 
 using TinyCanvas;
 
@@ -31,11 +34,16 @@ class JsDemo {
   static var GREEN_PALETTE:Palette = [0x00FF00, 0x00F520, 0x15E015, 0x10FF30];
   static var FIRE_PALETTE:Palette = [0xFD5039, 0xFD7303, 0xFD9D4F, 0xFDE181, 0xFD4403, 0xFD5039, 0xFD7303, 0xFD9D4F];
   static var GRASS_PALETTE:Palette = [0xA9F281, 0xBAEB81, 0x7CD582, 0x3ECF83, 0x00D984, 0x59F281, 0xBADB81, 0x7CF582];
+  static var YELLOW_PALETTE:Palette = [0xF2D040, 0xF0F000, 0xF4FF20, 0xFFFF00];
   
   static var rectPalette = FIRE_PALETTE;
   static var circlePalette = GRASS_PALETTE;
+  static var perlinPalette = YELLOW_PALETTE;
 
   static var mousePos:Point = null;
+  
+  static var tinyCanvasPerlin:TinyCanvas;
+  static var noise:Float32Array;
   
   public static function main() {
     
@@ -57,7 +65,7 @@ class JsDemo {
       
       grabMousePos(event);
       
-      var samples = generateCustomSamples(rect.x, rect.y, rect.width, rect.height, minDist);
+      var samples = generateSamplesInRect(rect.x, rect.y, rect.width, rect.height, minDist);
       
       clearCanvas(tinyCanvasRect, rectPalette);
       
@@ -98,12 +106,83 @@ class JsDemo {
     
     tinyCanvasCircle.canvas.addEventListener("click", canvasCircleOnClick);
     canvasCircleOnClick();
+    
+    
+    // perlin
+    tinyCanvasPerlin = new TinyCanvas(WIDTH, HEIGHT, "canvas-perlin");
+    document.body.appendChild(tinyCanvasPerlin.canvas);
+    initTinyCanvas(tinyCanvasPerlin, X + (WIDTH + SPACE) * 2, Y);
+    
+    function createPerlinNoise() {
+      var perlin = new Perlin();
+      var i32Array = new Int32Array(WIDTH * HEIGHT);
+      noise = new Float32Array(WIDTH * HEIGHT);
+      
+      var i = 0;
+      var value:Float;
+      var u8, r, g, b;
+      for (y in 0...HEIGHT) {
+        for (x in 0...WIDTH) {
+          value = perlin.OctavePerlin(x / 8, y / 8, 0.1, 1, 0.5, .25);
+          u8 = Std.int(value * 255);
+          r = u8;
+          g = u8;
+          b = u8;
+          var color = (b << 16) | (g << 8) | (r) | 0xFF000000;
+          i32Array[i] = color;
+          noise[i] = value;
+          i++;
+        }
+      }
+      
+      clearCanvas(tinyCanvasPerlin);
+      var u8Array = new Uint8ClampedArray(i32Array.buffer);
+      var imageData:ImageData = new ImageData(u8Array, WIDTH, HEIGHT);
+      tinyCanvasPerlin.context.putImageData(imageData, 0, 0);
+    }
+    
+    createPerlinNoise();
+    
+    
+    // use perlin
+    var tinyCanvasPerlinSample = new TinyCanvas(WIDTH, HEIGHT, "canvas-sampleperlin");
+    document.body.appendChild(tinyCanvasPerlinSample.canvas);
+    initTinyCanvas(tinyCanvasPerlinSample, tinyCanvasPerlin.canvas.offsetLeft, tinyCanvasPerlin.canvas.offsetTop);
+    
+    var canvasPerlinSampleOnClick = function(?event) {
+      
+      var minDist = 10;
+      var drawRadius = minDist * .85;
+      var rect = {
+        x: 15, 
+        y: 15, 
+        width: tinyCanvasPerlinSample.width - 30,
+        height: tinyCanvasPerlinSample.height - 30
+      }
+      
+      grabMousePos(event);
+      
+      var samples = generatePerlinSamples(rect.x, rect.y, rect.width, rect.height, minDist);
+      
+      clearCanvas(tinyCanvasPerlinSample, perlinPalette);
+      
+      // draw rect from which we're sampling
+      tinyCanvasPerlinSample.lineStyle(2., BOUNDS_COLOR, .75)
+        .drawRect(rect.x, rect.y, rect.width, rect.height);
+      
+      drawSamples(tinyCanvasPerlinSample, samples, drawRadius, perlinPalette);
+      
+    };
+    
+    tinyCanvasPerlinSample.canvas.addEventListener("click", canvasPerlinSampleOnClick);
+    canvasPerlinSampleOnClick();
+    
   }
   
   // make canvas' position absolute and set some styles on it
   static function initTinyCanvas(tinyCanvas:TinyCanvas, x:Int, y:Int):Void {
     var style = tinyCanvas.canvas.style;
-    style.backgroundColor = "#000000";
+    //style.backgroundColor = "#000000";
     style.position = "absolute";
     style.left = Std.string(x);
     style.top = Std.string(y);
@@ -142,6 +221,29 @@ class JsDemo {
     
     function minDistanceFunc(p:Point):Float {
       var dist = minDist * Math.random();
+      return clamp(dist, UniformPoissonDisk.MIN_DISTANCE_THRESHOLD, minDist);
+    }
+    
+    return upd.sample(topLeft, bottomRight, minDistanceFunc, minDist, null, OVERRIDE_DEFAULT_POINTS_PER_ITERATION, mousePos);
+  }
+    
+  // generate sample points inside using perlin
+  static function generatePerlinSamples(x:Float, y:Float, width:Float, height:Float, minDist:Float):Array<Point> {
+    var topLeft = new Point(x, y);
+    var bottomRight = new Point(x + width, y + height);
+    
+    var upd = new UniformPoissonDisk();
+    
+    inline function getNoiseValue(x:Float, y:Float):Float {
+      var ix = Std.int(x);
+      var iy = Std.int(y);
+      var i = (iy * WIDTH + ix);
+      return noise[i];
+    }
+    
+    function minDistanceFunc(p:Point):Float {
+      var value = 1.0 - getNoiseValue(p.x, p.y);
+      var dist = minDist * value;
       return clamp(dist, UniformPoissonDisk.MIN_DISTANCE_THRESHOLD, minDist);
     }
     

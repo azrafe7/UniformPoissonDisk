@@ -40,7 +40,7 @@ class UniformPoissonDisk {
 
   static public var DEFAULT_POINTS_PER_ITERATION:Int = 30;
   static public var FIRST_POINT_TRIES:Int = 1000;
-  static public var MAX_POINTS = 100;
+  static public var MAX_POINTS = 100000;
   
   // debug only
   static public var MIN_DISTANCE_THRESHOLD = 1;
