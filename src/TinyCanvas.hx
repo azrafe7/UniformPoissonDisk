@@ -45,7 +45,7 @@ class TinyCanvas {
     this.context = canvas.getContext2d();
   }
   
-  static public function intToRgb(color:Int) {
+  inline static public function intToRgb(color:Int) {
     return {
       r: (color >> 16) & 0xFF,
       g: (color >> 8) & 0xFF,
@@ -93,14 +93,14 @@ class TinyCanvas {
     return tinyCanvas;
   }
   
-  inline static public function moveTo(tinyCanvas:TinyCanvas, x:Float, y:Float):TinyCanvas {
+  static public function moveTo(tinyCanvas:TinyCanvas, x:Float, y:Float):TinyCanvas {
 		var ctx = tinyCanvas.context;
     ctx.beginPath();
 		ctx.moveTo(x, y);
     return tinyCanvas;
 	}
 
-	inline static public function lineTo(tinyCanvas:TinyCanvas, x:Float, y:Float):TinyCanvas {
+	static public function lineTo(tinyCanvas:TinyCanvas, x:Float, y:Float):TinyCanvas {
     var ctx = tinyCanvas.context;
 		ctx.lineTo(x, y);
     return tinyCanvas;
