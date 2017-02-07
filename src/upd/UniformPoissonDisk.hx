@@ -5,13 +5,9 @@
  * 
  * http://devmag.org.za/2009/05/03/poisson-disk-sampling/
  * http://theinstructionlimit.com/fast-uniform-poisson-disk-sampling-in-c (by Renaud Bédard)
- * http://www.luma.co.za/labs/2008/02/27/poisson-disk-sampling/
  * 
  * The algorithm is from the "Fast Poisson Disk Sampling in Arbitrary Dimensions" paper by Robert Bridson
  * http://www.cs.ubc.ca/~rbridson/docs/bridson-siggraph07-poissondisk.pdf
- * 
- * And with filtering ideas from:
- * https://github.com/corporateshark/poisson-disk-generator
  */   
  
 package upd;
@@ -29,7 +25,7 @@ package upd;
 typedef Point = SimplePoint;
 
 
-typedef GridIndex = Point;
+typedef GridIndex = { row:Int, col:Int };
 typedef RejectionFunction = Point->Bool;
 typedef MinDistFunction = Point->Bool;
 
@@ -182,12 +178,12 @@ class UniformPoissonDisk {
 
   // iterate the grid over a 5x5 square around `point` (identified by `index`)
   function isInNeighbourhood(point:Point, index:GridIndex):Bool {
-    var i = Std.int(Math.max(0, index.x - 2));
-    while (i < Math.min(gridWidth, index.x + 3))
+    var i = Std.int(Math.max(0, index.col - 2));
+    while (i < Math.min(gridWidth, index.col + 3))
     {
       //for (var j = (int) Math.Max(0, qIndex.y - 2); j < Math.Min(settings.GridHeight, qIndex.y + 3) && !tooClose; j++)
-      var j = Std.int(Math.max(0, index.y - 2));
-      while (j < Math.min(gridHeight, index.y + 3))
+      var j = Std.int(Math.max(0, index.row - 2));
+      while (j < Math.min(gridHeight, index.row + 3))
       {
         if (grid[j][i] != null && distance(grid[j][i], point) < minDistance) {
           return true;
@@ -199,11 +195,11 @@ class UniformPoissonDisk {
     return false;
   }
   
-  inline function addSampledPoint(point:Point, index:GridIndex):Void
+  function addSampledPoint(point:Point, index:GridIndex):Void
   {
     activePoints.push(point);
     sampledPoints.push(point);
-    grid[Std.int(index.y)][Std.int(index.x)] = point;
+    grid[index.row][index.col] = point;
   }
   
   // random point in the annulus centered at `center` and with `minRadius = minDistance` and `maxRadius = 2 * minDistance`
@@ -221,9 +217,12 @@ class UniformPoissonDisk {
     return new Point((center.x + x), (center.y + y));
   }
   
-  inline function pointToGridCoords(point:Point, topLeft:Point, cellSize:Float):Point
+  function pointToGridCoords(point:Point, topLeft:Point, cellSize:Float):GridIndex
   {
-    return new Point(Std.int((point.x - topLeft.x) / cellSize), Std.int((point.y - topLeft.y) / cellSize));
+    return {
+      row: Std.int((point.x - topLeft.x) / cellSize), 
+      col: Std.int((point.y - topLeft.y) / cellSize)
+    }
   }
   
   inline public function distanceSquared(p:Point, q:Point):Float 
