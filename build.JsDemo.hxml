@@ -1,3 +1,4 @@
 -cp src
 -main JsDemo
 -js bin\JsDemo\JsDemo.js
+-debug

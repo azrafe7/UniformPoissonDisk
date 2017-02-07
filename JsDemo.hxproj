@@ -24,7 +24,7 @@
     <option noInlineOnDebug="False" />
     <option mainClass="JsDemo" />
     <option enabledebug="False" />
-    <option additional="" />
+    <option additional="-debug" />
   </build>
   <!-- haxelib libraries -->
   <haxelib>

@@ -8,7 +8,6 @@ import js.html.*;
 
 using TinyCanvas;
 
-typedef Point = upd.Point;
 typedef Palette = Array<Int>;
 
 
@@ -35,7 +34,8 @@ class JsDemo {
   
   static var rectPalette = FIRE_PALETTE;
   static var circlePalette = GRASS_PALETTE;
-  
+
+  static var mousePos:Point = null;
   
   public static function main() {
     
@@ -54,7 +54,10 @@ class JsDemo {
         width: tinyCanvasRect.width - 30,
         height: tinyCanvasRect.height - 30
       }
-      var samples = generateSamplesInRect(rect.x, rect.y, rect.width, rect.height, minDist);
+      
+      grabMousePos(event);
+      
+      var samples = generateCustomSamples(rect.x, rect.y, rect.width, rect.height, minDist);
       
       clearCanvas(tinyCanvasRect, rectPalette);
       
@@ -137,7 +140,12 @@ class JsDemo {
       return (p.x < width * .5 && p.y < height * .5) || (p.x > width * .5 && p.y > height * .5);
     }
     
-    return upd.sample(topLeft, bottomRight, minDist, reject, OVERRIDE_DEFAULT_POINTS_PER_ITERATION);
+    function minDistanceFunc(p:Point):Float {
+      var dist = minDist * Math.random();
+      return clamp(dist, UniformPoissonDisk.MIN_DISTANCE_THRESHOLD, minDist);
+    }
+    
+    return upd.sample(topLeft, bottomRight, minDistanceFunc, minDist, null, OVERRIDE_DEFAULT_POINTS_PER_ITERATION, mousePos);
   }
   
   // draw samples onto tinyCanvas, optionally using a color palette
@@ -176,5 +184,16 @@ class JsDemo {
   static function getRandomColorFrom(palette:Palette, defaultColor:Int):Int {
     if (palette == null || palette.length == 0) return defaultColor;
     else return palette[Std.random(palette.length)];
+  }
+  
+  static inline function clamp(value:Float, min:Float, max:Float):Float {
+    return (value < min ? min : (value > max ? max : value));
+  }
+  
+  static inline function grabMousePos(mouseEvent):Void {
+    if (mouseEvent != null) {
+      var rect = mouseEvent.target.getBoundingClientRect();
+      mousePos = new Point(mouseEvent.clientX - rect.left, mouseEvent.clientY - rect.top);
+    }
   }
 }
