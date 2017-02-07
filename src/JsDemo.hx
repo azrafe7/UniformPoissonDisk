@@ -146,14 +146,20 @@ class JsDemo {
     var fillAlpha = .8;
     
     // draw circles at sampled points
+    var p = samples[0];
+    tinyCanvas.lineStyle(1.5, color, 1);
+    tinyCanvas.beginFill(color, fillAlpha);
+    tinyCanvas.drawCircle(p.x, p.y, .25); // center dot
+    tinyCanvas.drawCircle(p.x, p.y, radius);
+    tinyCanvas.endFill();
     for (p in samples) {
       color = getRandomColorFrom(palette, color);
       
       tinyCanvas.lineStyle(1.5, color, 1);
-      tinyCanvas.beginFill(color, fillAlpha);
+      //tinyCanvas.beginFill(color, fillAlpha);
       tinyCanvas.drawCircle(p.x, p.y, .25); // center dot
-      tinyCanvas.drawCircle(p.x, p.y, radius);
-      tinyCanvas.endFill();
+      //tinyCanvas.drawCircle(p.x, p.y, radius);
+      //tinyCanvas.endFill();
     }
   }
   

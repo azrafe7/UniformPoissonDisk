@@ -26,6 +26,7 @@ typedef Point = SimplePoint;
 
 
 typedef GridIndex = { row:Int, col:Int };
+typedef PointArray = Array<Point>;
 typedef RejectionFunction = Point->Bool;
 typedef MinDistFunction = Point->Bool;
 
@@ -49,7 +50,7 @@ class UniformPoissonDisk {
   var reject:Null<RejectionFunction>;
   var minDistance:Float;
   
-  var grid:Array<Array<Point>>; // NB: Grid[y][x]
+  var grid:Array<Array<PointArray>>; // NB: Grid[y][x]
   var gridWidth:Int; 
   var gridHeight:Int;
   var cellSize:Float;
@@ -57,6 +58,8 @@ class UniformPoissonDisk {
   var activePoints:Array<Point>;
   var sampledPoints:Array<Point>;
 
+  var done:Bool = false;
+  
   
   public function new():Void 
   {
@@ -96,7 +99,7 @@ class UniformPoissonDisk {
     this.gridWidth = Std.int(width / cellSize) + 1;
     this.gridHeight = Std.int(height / cellSize) + 1;
 
-    this.grid = new Array<Array<Point>>();
+    this.grid = new Array<Array<PointArray>>();
     for (y in 0...gridHeight) {
       this.grid.push( [for (x in 0...gridWidth) null] );
     }
@@ -112,7 +115,7 @@ class UniformPoissonDisk {
     
     addFirstPoint();
 
-    while (activePoints.length != 0)
+    while (activePoints.length != 0 && !done)
     {
       var randomIndex = Tools.randomInt(activePoints.length);
 
@@ -178,19 +181,24 @@ class UniformPoissonDisk {
 
   // iterate the grid over a 5x5 square around `point` (identified by `index`)
   function isInNeighbourhood(point:Point, index:GridIndex):Bool {
-    var i = Std.int(Math.max(0, index.col - 2));
-    while (i < Math.min(gridWidth, index.col + 3))
+    if (grid[index.row][index.col] != null) return true;
+    
+    var col = Std.int(Math.max(0, index.col - 2));
+    while (col < Math.min(gridWidth, index.col + 3))
     {
-      //for (var j = (int) Math.Max(0, qIndex.y - 2); j < Math.Min(settings.GridHeight, qIndex.y + 3) && !tooClose; j++)
-      var j = Std.int(Math.max(0, index.row - 2));
-      while (j < Math.min(gridHeight, index.row + 3))
+      var row = Std.int(Math.max(0, index.row - 2));
+      while (row < Math.min(gridHeight, index.row + 3))
       {
-        if (grid[j][i] != null && distance(grid[j][i], point) < minDistance) {
-          return true;
+        var cell = grid[row][col];
+        if (cell != null) {
+          for (p in cell) {
+            if (cell != null && distance(p, point) < minDistance) 
+              return true;
+          }
         }
-        j++;
+        row++;
       }
-      i++;
+      col++;
     }
     return false;
   }
@@ -199,7 +207,10 @@ class UniformPoissonDisk {
   {
     activePoints.push(point);
     sampledPoints.push(point);
-    grid[index.row][index.col] = point;
+    var cell = grid[index.row][index.col];
+    if (cell != null) cell.push(point);
+    else cell = [point];
+    if (sampledPoints.length > 1000) done = true;
   }
   
   // random point in the annulus centered at `center` and with `minRadius = minDistance` and `maxRadius = 2 * minDistance`
