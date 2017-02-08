@@ -11,7 +11,6 @@
  */   
  
 package upd;
-import js.html.svg.Point;
 
 /* Make this typedef reference the real Point class (e.g. flash.geom.Point), 
  * which should implement this pseudo-interface:

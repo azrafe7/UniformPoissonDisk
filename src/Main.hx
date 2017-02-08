@@ -3,9 +3,6 @@ package ;
 import upd.UniformPoissonDisk;
 
 
-typedef Point = upd.Point;
-
-
 class Main {
   public static function main() {
     
