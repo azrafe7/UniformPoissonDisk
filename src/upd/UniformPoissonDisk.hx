@@ -101,6 +101,7 @@ class UniformPoissonDisk {
   function init(topLeft:Point, bottomRight:Point, minDistanceFunc:MinDistanceFunction, maxDistance:Float, ?reject:RejectionFunction, ?pointsPerIteration:Int):Void 
   {
     if (pointsPerIteration == null) this.pointsPerIteration = DEFAULT_POINTS_PER_ITERATION;
+    else this.pointsPerIteration = pointsPerIteration;
 
     this.topLeft = topLeft;
     this.bottomRight = bottomRight;
@@ -129,7 +130,7 @@ class UniformPoissonDisk {
   public function sample(topLeft:Point, bottomRight:Point, minDistanceFunc:MinDistanceFunction, maxDistance:Float, ?reject:RejectionFunction, ?pointsPerIteration:Int, ?firstPoint:Point):Array<Point>
   {
     init(topLeft, bottomRight, minDistanceFunc, maxDistance, reject, pointsPerIteration);
-    
+    trace(pointsPerIteration);
     addFirstPoint(firstPoint);
 
     while (activePoints.length != 0 && !maxPointsReached)
