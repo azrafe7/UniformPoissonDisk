@@ -278,8 +278,8 @@ class UniformPoissonDisk {
   function pointToGridCoords(point:Point, topLeft:Point, cellSize:Float):GridIndex
   {
     return {
-      row: Std.int((point.x - topLeft.x) / cellSize), 
-      col: Std.int((point.y - topLeft.y) / cellSize)
+      row: Std.int((point.y - topLeft.y) / cellSize), 
+      col: Std.int((point.x - topLeft.x) / cellSize)
     }
   }
   
