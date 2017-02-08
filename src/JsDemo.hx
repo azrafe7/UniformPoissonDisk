@@ -233,7 +233,7 @@ class JsDemo {
     return upd.sample(topLeft, bottomRight, minDistanceFunc, minDist, null, OVERRIDE_DEFAULT_POINTS_PER_ITERATION);
   }
     
-  // generate sample points inside using perlin
+  // generate sample points from perlin noise
   static function generatePerlinSamples(x:Float, y:Float, width:Float, height:Float, minDist:Float):Array<Point> {
     var topLeft = new Point(x, y);
     var bottomRight = new Point(x + width, y + height);
@@ -253,8 +253,13 @@ class JsDemo {
       return clamp(dist, UniformPoissonDisk.MIN_DISTANCE_THRESHOLD, minDist);
     }
     
+    function reject(p:Point):Bool {
+      var value = getNoiseValue(p.x, p.y);
+      return value < .49;
+    }
+    
     upd.firstPoint = mousePos;
-    return upd.sample(topLeft, bottomRight, minDistanceFunc, minDist, null, OVERRIDE_DEFAULT_POINTS_PER_ITERATION);
+    return upd.sample(topLeft, bottomRight, minDistanceFunc, minDist, reject, OVERRIDE_DEFAULT_POINTS_PER_ITERATION);
   }
   
   // draw samples onto tinyCanvas, optionally using a color palette

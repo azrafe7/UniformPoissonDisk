@@ -188,8 +188,15 @@ JsDemo.generatePerlinSamples = function(x,y,width,height,minDist) {
 			return dist;
 		}
 	};
+	var reject = function(p1) {
+		var ix1 = p1.x | 0;
+		var iy1 = p1.y | 0;
+		var i1 = iy1 * JsDemo.WIDTH + ix1;
+		var value1 = JsDemo.noise[i1];
+		return value1 < .49;
+	};
 	upd1.firstPoint = JsDemo.mousePos;
-	return upd1.sample(topLeft,bottomRight,minDistanceFunc,minDist,null,JsDemo.OVERRIDE_DEFAULT_POINTS_PER_ITERATION);
+	return upd1.sample(topLeft,bottomRight,minDistanceFunc,minDist,reject,JsDemo.OVERRIDE_DEFAULT_POINTS_PER_ITERATION);
 };
 JsDemo.drawSamples = function(tinyCanvas,samples,radius,palette,fill,highlightFirstPoint) {
 	if(highlightFirstPoint == null) {
@@ -1138,7 +1145,7 @@ upd_UniformPoissonDisk.prototype = {
 		return new upd_SimplePoint(center.x + x,center.y + y);
 	}
 	,pointToGridCoords: function(point,topLeft,cellSize) {
-		return { row : (point.x - topLeft.x) / cellSize | 0, col : (point.y - topLeft.y) / cellSize | 0};
+		return { row : (point.y - topLeft.y) / cellSize | 0, col : (point.x - topLeft.x) / cellSize | 0};
 	}
 	,distanceSquared: function(p,q) {
 		var dx = p.x - q.x;
