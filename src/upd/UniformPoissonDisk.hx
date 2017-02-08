@@ -42,7 +42,8 @@ class UniformPoissonDisk {
   static public var MAX_POINTS = 100000;
   
   // debug only
-  static public var MIN_DISTANCE_THRESHOLD = 1;
+  static public var MIN_DISTANCE_THRESHOLD = .75;
+  static public var MAX_DISTANCE_THRESHOLD = 10000;
   
   var maxPointsReached:Bool = false;
   
@@ -107,6 +108,10 @@ class UniformPoissonDisk {
     this.topLeft = topLeft;
     this.bottomRight = bottomRight;
     this.minDistanceFunc = minDistanceFunc;
+  #if (debug)
+    if (maxDistance > MAX_DISTANCE_THRESHOLD) 
+      throw 'Error: maxDistance($maxDistance) is greater than MAX_DISTANCE_THRESHOLD($MAX_DISTANCE_THRESHOLD)!';
+  #end
     this.maxDistance = maxDistance;
     this.currMinDistance = 0;
     this.reject = reject;
@@ -145,9 +150,9 @@ class UniformPoissonDisk {
   
     #if (debug)
       if (currMinDistance < MIN_DISTANCE_THRESHOLD) 
-        throw 'Error: minDistance($currMinDistance) is below the threshold($MIN_DISTANCE_THRESHOLD)!';
+        throw 'Error: currMinDistance($currMinDistance) is lower than MIN_DISTANCE_THRESHOLD($MIN_DISTANCE_THRESHOLD)!';
       if (currMinDistance > maxDistance) 
-        throw 'Error: minDistance($currMinDistance) is greater than maxDistance($maxDistance)!';
+        throw 'Error: currMinDistance($currMinDistance) is greater than maxDistance($maxDistance)!';
     #end
 
       for (k in 0...this.pointsPerIteration) {
