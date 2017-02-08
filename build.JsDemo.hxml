@@ -2,4 +2,5 @@
 -main JsDemo
 -js bin\JsDemo\JsDemo.js
 -lib hxnoise
+-resource prim.png@prim.png
 -debug

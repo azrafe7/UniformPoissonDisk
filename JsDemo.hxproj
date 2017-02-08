@@ -24,7 +24,7 @@
     <option noInlineOnDebug="False" />
     <option mainClass="JsDemo" />
     <option enabledebug="False" />
-    <option additional="-debug" />
+    <option additional="-resource prim.png@prim.png&#xA;-debug" />
   </build>
   <!-- haxelib libraries -->
   <haxelib>

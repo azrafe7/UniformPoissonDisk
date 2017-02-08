@@ -1,5 +1,6 @@
 package ;
 
+import haxe.Resource;
 import upd.UniformPoissonDisk;
 
 import hxnoise.Perlin;
@@ -44,6 +45,8 @@ class JsDemo {
   
   static var tinyCanvasPerlin:TinyCanvas;
   static var noise:Float32Array;
+  static var imageData:ImageData;
+  
   
   public static function main() {
     
@@ -54,8 +57,8 @@ class JsDemo {
     
     var canvasRectOnClick = function(?event) {
       
-      var minDist = 15;
-      var drawRadius = minDist * .85;
+      var minDist = 8;
+      var drawRadius = minDist * .75;
       var rect = {
         x: 15, 
         y: 15, 
@@ -88,7 +91,7 @@ class JsDemo {
     
     var canvasCircleOnClick = function(?event) {
       
-      var minDist = 15;
+      var minDist = 8;
       var radius = tinyCanvasCircle.width * .45;
       var drawRadius = minDist * .75;
       var center = new Point(tinyCanvasCircle.width * .5, tinyCanvasCircle.height * .5);
@@ -155,7 +158,7 @@ class JsDemo {
     var canvasPerlinSampleOnClick = function(?event) {
       
       var minDist = 10;
-      var drawRadius = minDist * .85;
+      var drawRadius = minDist * .25;
       var rect = {
         x: 15, 
         y: 15, 
@@ -180,7 +183,62 @@ class JsDemo {
     tinyCanvasPerlinSample.canvas.addEventListener("click", canvasPerlinSampleOnClick);
     canvasPerlinSampleOnClick();
     
+    
+    // image
+    var tinyCanvasPNG = new TinyCanvas(WIDTH, HEIGHT, "canvas-png");
+    document.body.appendChild(tinyCanvasPNG.canvas);
+    initTinyCanvas(tinyCanvasPNG, X, Y + HEIGHT + SPACE);
+    
+    var pngBytes = Resource.getBytes("prim.png");
+    trace(pngBytes.length);
+    var image = document.createImageElement();
+    image.onload = function(event) {
+      trace("image loaded");
+      trace(event);
+      
+      clearCanvas(tinyCanvasPNG);
+      tinyCanvasPNG.context.drawImage(image, 0, 0, WIDTH, HEIGHT);
+
+      
+      // use image
+      var tinyCanvasSamplePNG = new TinyCanvas(WIDTH, HEIGHT, "canvas-samplepng");
+      document.body.appendChild(tinyCanvasSamplePNG.canvas);
+      initTinyCanvas(tinyCanvasSamplePNG, X, Y + HEIGHT + SPACE);
+      
+      var canvasSamplePNGOnClick = function(?event) {
+        
+        var minDist = 2;
+        var drawRadius = minDist * .15;
+        var rect = {
+          x: 15, 
+          y: 15, 
+          width: tinyCanvasSamplePNG.width - 30,
+          height: tinyCanvasSamplePNG.height - 30
+        }
+        
+        grabMousePos(event);
+        
+        var samples = generateImageSamples(rect.x, rect.y, rect.width, rect.height, minDist, tinyCanvasPNG.context.getImageData(0, 0, WIDTH, HEIGHT));
+        
+        clearCanvas(tinyCanvasSamplePNG, perlinPalette);
+        
+        // draw rect from which we're sampling
+        tinyCanvasSamplePNG.lineStyle(2., BOUNDS_COLOR, .75)
+          .drawRect(rect.x, rect.y, rect.width, rect.height);
+        
+        drawSamples(tinyCanvasSamplePNG, samples, drawRadius, rectPalette, true, true);
+        
+      };
+      
+      tinyCanvasSamplePNG.canvas.addEventListener("click", canvasSamplePNGOnClick);
+      canvasSamplePNGOnClick();
+      
+    }
+    
+    image.src = "data:image/png;base64," + haxe.crypto.Base64.encode(pngBytes);
   }
+
+  
   
   // make canvas' position absolute and set some styles on it
   static function initTinyCanvas(tinyCanvas:TinyCanvas, x:Int, y:Int):Void {
@@ -262,23 +320,51 @@ class JsDemo {
     return upd.sample(topLeft, bottomRight, minDistanceFunc, minDist, reject, OVERRIDE_DEFAULT_POINTS_PER_ITERATION);
   }
   
+  // generate sample points from image
+  static function generateImageSamples(x:Float, y:Float, width:Float, height:Float, minDist:Float, imageData:ImageData):Array<Point> {
+    var topLeft = new Point(x, y);
+    var bottomRight = new Point(x + width, y + height);
+    
+    var upd = new UniformPoissonDisk();
+    var bgraBytes = imageData.data;
+    
+    inline function getValue(x:Float, y:Float):Float {
+      var ix = Std.int(x);
+      var iy = Std.int(y);
+      var i = (iy * WIDTH + ix) * 4;
+      return bgraBytes[i] / 255;
+    }
+    
+    function minDistanceFunc(p:Point):Float {
+      var value = getValue(p.x, p.y);
+      var dist = minDist * value;
+      return clamp(dist, UniformPoissonDisk.MIN_DISTANCE_THRESHOLD, minDist);
+    }
+    
+    function reject(p:Point):Bool {
+      var value = getValue(p.x, p.y);
+      return value < .6 || value > .8;
+    }
+    
+    upd.firstPoint = mousePos;
+    return upd.sample(topLeft, bottomRight, minDistanceFunc, minDist, reject, OVERRIDE_DEFAULT_POINTS_PER_ITERATION);
+  }
+  
   // draw samples onto tinyCanvas, optionally using a color palette
   static function drawSamples(tinyCanvas:TinyCanvas, samples:Array<Point>, radius:Float, ?palette:Palette, ?fill:Bool = false, ?highlightFirstPoint:Bool = true):Void {
     var color = palette != null ? palette[0] : 0xFF0000;
-    var fillAlpha = .8;
+    var fillAlpha = .25;
     
     // draw circles at sampled points
     if (highlightFirstPoint) {
       var p = samples[0];
-      tinyCanvas.lineStyle(1.5, color, 1);
-      tinyCanvas.beginFill(color, fillAlpha);
+      tinyCanvas.lineStyle(2, color, 1);
+      tinyCanvas.beginFill(color, .75);
       tinyCanvas.drawCircle(p.x, p.y, .25); // center dot
       tinyCanvas.drawCircle(p.x, p.y, radius);
       tinyCanvas.endFill();
     }
     for (p in samples) {
-      color = getRandomColorFrom(palette, color);
-      
       tinyCanvas.lineStyle(1.5, color, 1);
       if (fill) {
         tinyCanvas.beginFill(color, fillAlpha);
@@ -286,6 +372,8 @@ class JsDemo {
         tinyCanvas.endFill();
       }
       tinyCanvas.drawCircle(p.x, p.y, .25); // center dot
+      
+      color = getRandomColorFrom(palette, color);
     }
   }
   
