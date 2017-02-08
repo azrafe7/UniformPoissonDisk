@@ -6,7 +6,8 @@ Uniform Poisson Disk Sampling.
 ![](snapshot.png)
 
  - supports non-uniform sampling by specifying a per-point distance function
- - a reject function can be used to filter sampled points
+ - a reject function can be used to filter out sampled points (while sampling)
+ - optionally a first point can be specified (instead of choosing one randomly inside the sampling area)
 
 ## References
 
