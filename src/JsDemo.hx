@@ -35,11 +35,13 @@ class JsDemo {
   static var GREEN_PALETTE:Palette = [0x00FF00, 0x00F520, 0x15E015, 0x10FF30];
   static var FIRE_PALETTE:Palette = [0xFD5039, 0xFD7303, 0xFD9D4F, 0xFDE181, 0xFD4403, 0xFD5039, 0xFD7303, 0xFD9D4F];
   static var GRASS_PALETTE:Palette = [0xA9F281, 0xBAEB81, 0x7CD582, 0x3ECF83, 0x00D984, 0x59F281, 0xBADB81, 0x7CF582];
+  static var OCEAN_PALETTE:Palette = [0xA981F2, 0xBA81EB, 0x7C82D5, 0x3E83CF, 0x0084D9, 0x5981F2, 0xBA81DB, 0x7C82F5];
   static var YELLOW_PALETTE:Palette = [0xF2D040, 0xF0F000, 0xF4FF20, 0xFFFF00];
   
   static var rectPalette = FIRE_PALETTE;
   static var circlePalette = GRASS_PALETTE;
   static var perlinPalette = YELLOW_PALETTE;
+  static var imagePalette = FIRE_PALETTE;
 
   static var mousePos:Point = null;
   
@@ -187,7 +189,7 @@ class JsDemo {
     // image
     var tinyCanvasPNG = new TinyCanvas(WIDTH, HEIGHT, "canvas-png");
     document.body.appendChild(tinyCanvasPNG.canvas);
-    initTinyCanvas(tinyCanvasPNG, X, Y + HEIGHT + SPACE);
+    initTinyCanvas(tinyCanvasPNG, X + (WIDTH + SPACE) * 3, Y);
     
     var pngBytes = Resource.getBytes("prim.png");
     trace(pngBytes.length);
@@ -203,7 +205,7 @@ class JsDemo {
       // use image
       var tinyCanvasSamplePNG = new TinyCanvas(WIDTH, HEIGHT, "canvas-samplepng");
       document.body.appendChild(tinyCanvasSamplePNG.canvas);
-      initTinyCanvas(tinyCanvasSamplePNG, X, Y + HEIGHT + SPACE);
+      initTinyCanvas(tinyCanvasSamplePNG, tinyCanvasPNG.canvas.offsetLeft, tinyCanvasPNG.canvas.offsetTop);
       
       var canvasSamplePNGOnClick = function(?event) {
         
@@ -220,13 +222,13 @@ class JsDemo {
         
         var samples = generateImageSamples(rect.x, rect.y, rect.width, rect.height, minDist, tinyCanvasPNG.context.getImageData(0, 0, WIDTH, HEIGHT));
         
-        clearCanvas(tinyCanvasSamplePNG, perlinPalette);
+        clearCanvas(tinyCanvasSamplePNG, imagePalette);
         
         // draw rect from which we're sampling
         tinyCanvasSamplePNG.lineStyle(2., BOUNDS_COLOR, .75)
           .drawRect(rect.x, rect.y, rect.width, rect.height);
         
-        drawSamples(tinyCanvasSamplePNG, samples, drawRadius, rectPalette, true, true);
+        drawSamples(tinyCanvasSamplePNG, samples, drawRadius, imagePalette, true, true);
         
       };
       
@@ -317,7 +319,7 @@ class JsDemo {
     }
     
     upd.firstPoint = mousePos;
-    return upd.sample(topLeft, bottomRight, minDistanceFunc, minDist, reject, OVERRIDE_DEFAULT_POINTS_PER_ITERATION);
+    return upd.sample(topLeft, bottomRight, minDistanceFunc, minDist, null, OVERRIDE_DEFAULT_POINTS_PER_ITERATION);
   }
   
   // generate sample points from image

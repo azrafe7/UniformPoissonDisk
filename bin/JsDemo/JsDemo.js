@@ -142,7 +142,7 @@ JsDemo.main = function() {
 	canvasPerlinSampleOnClick();
 	var tinyCanvasPNG = new TinyCanvas(JsDemo.WIDTH,JsDemo.HEIGHT,"canvas-png");
 	window.document.body.appendChild(tinyCanvasPNG.canvas);
-	JsDemo.initTinyCanvas(tinyCanvasPNG,JsDemo.X,JsDemo.Y + JsDemo.HEIGHT + JsDemo.SPACE);
+	JsDemo.initTinyCanvas(tinyCanvasPNG,JsDemo.X + (JsDemo.WIDTH + JsDemo.SPACE) * 3,JsDemo.Y);
 	var pngBytes = haxe_Resource.getBytes("prim.png");
 	console.log(pngBytes.length);
 	var image = window.document.createElement("img");
@@ -153,7 +153,7 @@ JsDemo.main = function() {
 		tinyCanvasPNG.context.drawImage(image,0,0,JsDemo.WIDTH,JsDemo.HEIGHT);
 		var tinyCanvasSamplePNG = new TinyCanvas(JsDemo.WIDTH,JsDemo.HEIGHT,"canvas-samplepng");
 		window.document.body.appendChild(tinyCanvasSamplePNG.canvas);
-		JsDemo.initTinyCanvas(tinyCanvasSamplePNG,JsDemo.X,JsDemo.Y + JsDemo.HEIGHT + JsDemo.SPACE);
+		JsDemo.initTinyCanvas(tinyCanvasSamplePNG,tinyCanvasPNG.canvas.offsetLeft,tinyCanvasPNG.canvas.offsetTop);
 		var canvasSamplePNGOnClick = function(event4) {
 			var minDist3 = 2;
 			var drawRadius3 = minDist3 * .15;
@@ -170,9 +170,9 @@ JsDemo.main = function() {
 				JsDemo.mousePos = new upd_SimplePoint(event4.clientX - rect3.left,event4.clientY - rect3.top);
 			}
 			var samples3 = JsDemo.generateImageSamples(rect_x2,rect_y2,rect_width2,rect_height2,minDist3,tinyCanvasPNG.context.getImageData(0,0,JsDemo.WIDTH,JsDemo.HEIGHT));
-			JsDemo.clearCanvas(tinyCanvasSamplePNG,JsDemo.perlinPalette);
+			JsDemo.clearCanvas(tinyCanvasSamplePNG,JsDemo.imagePalette);
 			TinyCanvas.drawRect(TinyCanvas.lineStyle(tinyCanvasSamplePNG,2.,JsDemo.BOUNDS_COLOR,.75),rect_x2,rect_y2,rect_width2,rect_height2);
-			JsDemo.drawSamples(tinyCanvasSamplePNG,samples3,drawRadius3,JsDemo.rectPalette,true,true);
+			JsDemo.drawSamples(tinyCanvasSamplePNG,samples3,drawRadius3,JsDemo.imagePalette,true,true);
 		};
 		tinyCanvasSamplePNG.canvas.addEventListener("click",canvasSamplePNGOnClick);
 		canvasSamplePNGOnClick();
@@ -257,7 +257,7 @@ JsDemo.generatePerlinSamples = function(x,y,width,height,minDist) {
 		return value1 < .49;
 	};
 	upd1.firstPoint = JsDemo.mousePos;
-	return upd1.sample(topLeft,bottomRight,minDistanceFunc,minDist,reject,JsDemo.OVERRIDE_DEFAULT_POINTS_PER_ITERATION);
+	return upd1.sample(topLeft,bottomRight,minDistanceFunc,minDist,null,JsDemo.OVERRIDE_DEFAULT_POINTS_PER_ITERATION);
 };
 JsDemo.generateImageSamples = function(x,y,width,height,minDist,imageData) {
 	var topLeft = new upd_SimplePoint(x,y);
@@ -1503,10 +1503,12 @@ JsDemo.RED_PALETTE = [16711680,16064512,14685461,16723984];
 JsDemo.GREEN_PALETTE = [65280,62752,1433621,1113904];
 JsDemo.FIRE_PALETTE = [16601145,16610051,16620879,16638337,16598019,16601145,16610051,16620879];
 JsDemo.GRASS_PALETTE = [11137665,12249985,8181122,4116355,55684,5894785,12245889,8189314];
+JsDemo.OCEAN_PALETTE = [11108850,12222955,8159957,4096975,34009,5865970,12222939,8159989];
 JsDemo.YELLOW_PALETTE = [15913024,15790080,16056096,16776960];
 JsDemo.rectPalette = JsDemo.FIRE_PALETTE;
 JsDemo.circlePalette = JsDemo.GRASS_PALETTE;
 JsDemo.perlinPalette = JsDemo.YELLOW_PALETTE;
+JsDemo.imagePalette = JsDemo.FIRE_PALETTE;
 haxe_crypto_Base64.CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 haxe_crypto_Base64.BYTES = haxe_io_Bytes.ofString(haxe_crypto_Base64.CHARS);
 hxnoise_Perlin.PERMUTATIONS = [151,160,137,91,90,15,131,13,201,95,96,53,194,233,7,225,140,36,103,30,69,142,8,99,37,240,21,10,23,190,6,148,247,120,234,75,0,26,197,62,94,252,219,203,117,35,11,32,57,177,33,88,237,149,56,87,174,20,125,136,171,168,68,175,74,165,71,134,139,48,27,166,77,146,158,231,83,111,229,122,60,211,133,230,220,105,92,41,55,46,245,40,244,102,143,54,65,25,63,161,1,216,80,73,209,76,132,187,208,89,18,169,200,196,135,130,116,188,159,86,164,100,109,198,173,186,3,64,52,217,226,250,124,123,5,202,38,147,118,126,255,82,85,212,207,206,59,227,47,16,58,17,182,189,28,42,223,183,170,213,119,248,152,2,44,154,163,70,221,153,101,155,167,43,172,9,129,22,39,253,19,98,108,110,79,113,224,232,178,185,112,104,218,246,97,228,251,34,242,193,238,210,144,12,191,179,162,241,81,51,145,235,249,14,239,107,49,192,214,31,181,199,106,157,184,84,204,176,115,121,50,45,127,4,150,254,138,236,205,93,222,114,67,29,24,72,243,141,128,195,78,66,215,61,156,180];
