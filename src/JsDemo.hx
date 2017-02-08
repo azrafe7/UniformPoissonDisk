@@ -92,6 +92,9 @@ class JsDemo {
       var radius = tinyCanvasCircle.width * .45;
       var drawRadius = minDist * .75;
       var center = new Point(tinyCanvasCircle.width * .5, tinyCanvasCircle.height * .5);
+      
+      grabMousePos(event);
+      
       var samples = generateSamplesInCircle(center.x, center.y, radius, minDist);
       
       clearCanvas(tinyCanvasCircle, circlePalette);
@@ -170,7 +173,7 @@ class JsDemo {
       tinyCanvasPerlinSample.lineStyle(2., BOUNDS_COLOR, .75)
         .drawRect(rect.x, rect.y, rect.width, rect.height);
       
-      drawSamples(tinyCanvasPerlinSample, samples, drawRadius, perlinPalette);
+      drawSamples(tinyCanvasPerlinSample, samples, drawRadius, perlinPalette, false, true);
       
     };
     
@@ -196,6 +199,7 @@ class JsDemo {
     
     var upd = new UniformPoissonDisk();
     
+    upd.firstPoint = mousePos;
     return upd.sampleRectangle(topLeft, bottomRight, minDist, OVERRIDE_DEFAULT_POINTS_PER_ITERATION);
   }
   
@@ -205,6 +209,7 @@ class JsDemo {
     
     var upd = new UniformPoissonDisk();
     
+    upd.firstPoint = mousePos;
     return upd.sampleCircle(center, radius, minDist, OVERRIDE_DEFAULT_POINTS_PER_ITERATION);
   }
   
@@ -224,7 +229,8 @@ class JsDemo {
       return clamp(dist, UniformPoissonDisk.MIN_DISTANCE_THRESHOLD, minDist);
     }
     
-    return upd.sample(topLeft, bottomRight, minDistanceFunc, minDist, null, OVERRIDE_DEFAULT_POINTS_PER_ITERATION, mousePos);
+    upd.firstPoint = mousePos;
+    return upd.sample(topLeft, bottomRight, minDistanceFunc, minDist, null, OVERRIDE_DEFAULT_POINTS_PER_ITERATION);
   }
     
   // generate sample points inside using perlin
@@ -247,29 +253,34 @@ class JsDemo {
       return clamp(dist, UniformPoissonDisk.MIN_DISTANCE_THRESHOLD, minDist);
     }
     
-    return upd.sample(topLeft, bottomRight, minDistanceFunc, minDist, null, OVERRIDE_DEFAULT_POINTS_PER_ITERATION, mousePos);
+    upd.firstPoint = mousePos;
+    return upd.sample(topLeft, bottomRight, minDistanceFunc, minDist, null, OVERRIDE_DEFAULT_POINTS_PER_ITERATION);
   }
   
   // draw samples onto tinyCanvas, optionally using a color palette
-  static function drawSamples(tinyCanvas:TinyCanvas, samples:Array<Point>, radius:Float, ?palette:Palette):Void {
+  static function drawSamples(tinyCanvas:TinyCanvas, samples:Array<Point>, radius:Float, ?palette:Palette, ?fill:Bool = false, ?highlightFirstPoint:Bool = true):Void {
     var color = palette != null ? palette[0] : 0xFF0000;
     var fillAlpha = .8;
     
     // draw circles at sampled points
-    var p = samples[0];
-    tinyCanvas.lineStyle(1.5, color, 1);
-    tinyCanvas.beginFill(color, fillAlpha);
-    tinyCanvas.drawCircle(p.x, p.y, .25); // center dot
-    tinyCanvas.drawCircle(p.x, p.y, radius);
-    tinyCanvas.endFill();
+    if (highlightFirstPoint) {
+      var p = samples[0];
+      tinyCanvas.lineStyle(1.5, color, 1);
+      tinyCanvas.beginFill(color, fillAlpha);
+      tinyCanvas.drawCircle(p.x, p.y, .25); // center dot
+      tinyCanvas.drawCircle(p.x, p.y, radius);
+      tinyCanvas.endFill();
+    }
     for (p in samples) {
       color = getRandomColorFrom(palette, color);
       
       tinyCanvas.lineStyle(1.5, color, 1);
-      //tinyCanvas.beginFill(color, fillAlpha);
+      if (fill) {
+        tinyCanvas.beginFill(color, fillAlpha);
+        tinyCanvas.drawCircle(p.x, p.y, radius);
+        tinyCanvas.endFill();
+      }
       tinyCanvas.drawCircle(p.x, p.y, .25); // center dot
-      //tinyCanvas.drawCircle(p.x, p.y, radius);
-      //tinyCanvas.endFill();
     }
   }
   

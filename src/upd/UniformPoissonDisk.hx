@@ -67,10 +67,12 @@ class UniformPoissonDisk {
   var activePoints:Array<Point>;
   var sampledPoints:Array<Point>;
   
+  public var firstPoint:Point;
   
-  public function new():Void 
+  
+  public function new(?firstPoint):Void 
   {
-    
+    if (firstPoint != null) this.firstPoint = firstPoint;
   }
   
   inline static public function makeConstMinDistance(minDistance:Float):MinDistanceFunction 
@@ -127,11 +129,11 @@ class UniformPoissonDisk {
   }
   
   // this is the workhorse
-  public function sample(topLeft:Point, bottomRight:Point, minDistanceFunc:MinDistanceFunction, maxDistance:Float, ?reject:RejectionFunction, ?pointsPerIteration:Int, ?firstPoint:Point):Array<Point>
+  public function sample(topLeft:Point, bottomRight:Point, minDistanceFunc:MinDistanceFunction, maxDistance:Float, ?reject:RejectionFunction, ?pointsPerIteration:Int):Array<Point>
   {
     init(topLeft, bottomRight, minDistanceFunc, maxDistance, reject, pointsPerIteration);
-    trace(pointsPerIteration);
-    addFirstPoint(firstPoint);
+    
+    addFirstPoint();
 
     while (activePoints.length != 0 && !maxPointsReached)
     {
@@ -161,10 +163,10 @@ class UniformPoissonDisk {
     return sampledPoints;
   }
 
-  function addFirstPoint(?firstPoint:Point):Void
+  function addFirstPoint():Void
   {
     // add a custom first point instead of finding a random one
-    if (firstPoint != null) {
+    if (this.firstPoint != null) {
       var index = pointToGridCoords(firstPoint, topLeft, cellSize);
       addSampledPoint(firstPoint, index);
       return;

@@ -44,6 +44,10 @@ JsDemo.main = function() {
 		var center_y;
 		var center_x = tinyCanvasCircle.canvas.width * .5;
 		center_y = tinyCanvasCircle.canvas.height * .5;
+		if(event1 != null) {
+			var rect1 = event1.target.getBoundingClientRect();
+			JsDemo.mousePos = new upd_SimplePoint(event1.clientX - rect1.left,event1.clientY - rect1.top);
+		}
 		var samples1 = JsDemo.generateSamplesInCircle(center_x,center_y,radius,minDist1);
 		JsDemo.clearCanvas(tinyCanvasCircle,JsDemo.circlePalette);
 		TinyCanvas.drawCircle(TinyCanvas.lineStyle(tinyCanvasCircle,2.,JsDemo.BOUNDS_COLOR,.75),center_x,center_y,radius);
@@ -104,13 +108,13 @@ JsDemo.main = function() {
 		rect_width1 = tinyCanvasPerlinSample.canvas.width - 30;
 		rect_height1 = tinyCanvasPerlinSample.canvas.height - 30;
 		if(event2 != null) {
-			var rect1 = event2.target.getBoundingClientRect();
-			JsDemo.mousePos = new upd_SimplePoint(event2.clientX - rect1.left,event2.clientY - rect1.top);
+			var rect2 = event2.target.getBoundingClientRect();
+			JsDemo.mousePos = new upd_SimplePoint(event2.clientX - rect2.left,event2.clientY - rect2.top);
 		}
 		var samples2 = JsDemo.generatePerlinSamples(rect_x1,rect_y1,rect_width1,rect_height1,minDist2);
 		JsDemo.clearCanvas(tinyCanvasPerlinSample,JsDemo.perlinPalette);
 		TinyCanvas.drawRect(TinyCanvas.lineStyle(tinyCanvasPerlinSample,2.,JsDemo.BOUNDS_COLOR,.75),rect_x1,rect_y1,rect_width1,rect_height1);
-		JsDemo.drawSamples(tinyCanvasPerlinSample,samples2,drawRadius2,JsDemo.perlinPalette);
+		JsDemo.drawSamples(tinyCanvasPerlinSample,samples2,drawRadius2,JsDemo.perlinPalette,false,true);
 	};
 	tinyCanvasPerlinSample.canvas.addEventListener("click",canvasPerlinSampleOnClick);
 	canvasPerlinSampleOnClick();
@@ -126,11 +130,13 @@ JsDemo.generateSamplesInRect = function(x,y,width,height,minDist) {
 	var topLeft = new upd_SimplePoint(x,y);
 	var bottomRight = new upd_SimplePoint(x + width,y + height);
 	var upd1 = new upd_UniformPoissonDisk();
+	upd1.firstPoint = JsDemo.mousePos;
 	return upd1.sampleRectangle(topLeft,bottomRight,minDist,JsDemo.OVERRIDE_DEFAULT_POINTS_PER_ITERATION);
 };
 JsDemo.generateSamplesInCircle = function(cx,cy,radius,minDist) {
 	var center = new upd_SimplePoint(cx,cy);
 	var upd1 = new upd_UniformPoissonDisk();
+	upd1.firstPoint = JsDemo.mousePos;
 	return upd1.sampleCircle(center,radius,minDist,JsDemo.OVERRIDE_DEFAULT_POINTS_PER_ITERATION);
 };
 JsDemo.generateCustomSamples = function(x,y,width,height,minDist) {
@@ -160,7 +166,8 @@ JsDemo.generateCustomSamples = function(x,y,width,height,minDist) {
 			return dist1;
 		}
 	};
-	return upd1.sample(topLeft,bottomRight,minDistanceFunc,minDist,null,JsDemo.OVERRIDE_DEFAULT_POINTS_PER_ITERATION,JsDemo.mousePos);
+	upd1.firstPoint = JsDemo.mousePos;
+	return upd1.sample(topLeft,bottomRight,minDistanceFunc,minDist,null,JsDemo.OVERRIDE_DEFAULT_POINTS_PER_ITERATION);
 };
 JsDemo.generatePerlinSamples = function(x,y,width,height,minDist) {
 	var topLeft = new upd_SimplePoint(x,y);
@@ -181,23 +188,37 @@ JsDemo.generatePerlinSamples = function(x,y,width,height,minDist) {
 			return dist;
 		}
 	};
-	return upd1.sample(topLeft,bottomRight,minDistanceFunc,minDist,null,JsDemo.OVERRIDE_DEFAULT_POINTS_PER_ITERATION,JsDemo.mousePos);
+	upd1.firstPoint = JsDemo.mousePos;
+	return upd1.sample(topLeft,bottomRight,minDistanceFunc,minDist,null,JsDemo.OVERRIDE_DEFAULT_POINTS_PER_ITERATION);
 };
-JsDemo.drawSamples = function(tinyCanvas,samples,radius,palette) {
+JsDemo.drawSamples = function(tinyCanvas,samples,radius,palette,fill,highlightFirstPoint) {
+	if(highlightFirstPoint == null) {
+		highlightFirstPoint = true;
+	}
+	if(fill == null) {
+		fill = false;
+	}
 	var color = palette != null ? palette[0] : 16711680;
 	var fillAlpha = .8;
-	var p = samples[0];
-	TinyCanvas.lineStyle(tinyCanvas,1.5,color,1);
-	TinyCanvas.beginFill(tinyCanvas,color,fillAlpha);
-	TinyCanvas.drawCircle(tinyCanvas,p.x,p.y,.25);
-	TinyCanvas.drawCircle(tinyCanvas,p.x,p.y,radius);
-	TinyCanvas.endFill(tinyCanvas);
+	if(highlightFirstPoint) {
+		var p = samples[0];
+		TinyCanvas.lineStyle(tinyCanvas,1.5,color,1);
+		TinyCanvas.beginFill(tinyCanvas,color,fillAlpha);
+		TinyCanvas.drawCircle(tinyCanvas,p.x,p.y,.25);
+		TinyCanvas.drawCircle(tinyCanvas,p.x,p.y,radius);
+		TinyCanvas.endFill(tinyCanvas);
+	}
 	var _g = 0;
 	while(_g < samples.length) {
 		var p1 = samples[_g];
 		++_g;
 		color = JsDemo.getRandomColorFrom(palette,color);
 		TinyCanvas.lineStyle(tinyCanvas,1.5,color,1);
+		if(fill) {
+			TinyCanvas.beginFill(tinyCanvas,color,fillAlpha);
+			TinyCanvas.drawCircle(tinyCanvas,p1.x,p1.y,radius);
+			TinyCanvas.endFill(tinyCanvas);
+		}
 		TinyCanvas.drawCircle(tinyCanvas,p1.x,p1.y,.25);
 	}
 };
@@ -922,9 +943,12 @@ upd_SimplePoint.__name__ = true;
 upd_SimplePoint.prototype = {
 	__class__: upd_SimplePoint
 };
-var upd_UniformPoissonDisk = function() {
+var upd_UniformPoissonDisk = function(firstPoint) {
 	this.pointsPerIteration = upd_UniformPoissonDisk.DEFAULT_POINTS_PER_ITERATION;
 	this.maxPointsReached = false;
+	if(firstPoint != null) {
+		this.firstPoint = firstPoint;
+	}
 };
 upd_UniformPoissonDisk.__name__ = true;
 upd_UniformPoissonDisk.makeConstMinDistance = function(minDistance) {
@@ -957,6 +981,8 @@ upd_UniformPoissonDisk.prototype = {
 	,init: function(topLeft,bottomRight,minDistanceFunc,maxDistance,reject,pointsPerIteration) {
 		if(pointsPerIteration == null) {
 			this.pointsPerIteration = upd_UniformPoissonDisk.DEFAULT_POINTS_PER_ITERATION;
+		} else {
+			this.pointsPerIteration = pointsPerIteration;
 		}
 		this.topLeft = topLeft;
 		this.bottomRight = bottomRight;
@@ -987,9 +1013,9 @@ upd_UniformPoissonDisk.prototype = {
 		this.activePoints = [];
 		this.sampledPoints = [];
 	}
-	,sample: function(topLeft,bottomRight,minDistanceFunc,maxDistance,reject,pointsPerIteration,firstPoint) {
+	,sample: function(topLeft,bottomRight,minDistanceFunc,maxDistance,reject,pointsPerIteration) {
 		this.init(topLeft,bottomRight,minDistanceFunc,maxDistance,reject,pointsPerIteration);
-		this.addFirstPoint(firstPoint);
+		this.addFirstPoint();
 		while(this.activePoints.length != 0 && !this.maxPointsReached) {
 			var randomIndex = Std.random(this.activePoints.length);
 			var point = this.activePoints[randomIndex];
@@ -1016,10 +1042,10 @@ upd_UniformPoissonDisk.prototype = {
 		}
 		return this.sampledPoints;
 	}
-	,addFirstPoint: function(firstPoint) {
-		if(firstPoint != null) {
-			var index = this.pointToGridCoords(firstPoint,this.topLeft,this.cellSize);
-			this.addSampledPoint(firstPoint,index);
+	,addFirstPoint: function() {
+		if(this.firstPoint != null) {
+			var index = this.pointToGridCoords(this.firstPoint,this.topLeft,this.cellSize);
+			this.addSampledPoint(this.firstPoint,index);
 			return;
 		}
 		var added = false;
