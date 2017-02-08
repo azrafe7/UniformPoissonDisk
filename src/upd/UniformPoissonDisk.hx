@@ -113,7 +113,7 @@ class UniformPoissonDisk {
     
     this.width = bottomRight.x - topLeft.x;
     this.height = bottomRight.y - topLeft.y;
-    this.cellSize = maxDistance / Tools.SQUARE_ROOT_TWO;
+    this.cellSize = maxDistance / UpdTools.SQUARE_ROOT_TWO;
     
     this.gridWidth = Std.int(width / cellSize) + 1;
     this.gridHeight = Std.int(height / cellSize) + 1;
@@ -136,7 +136,7 @@ class UniformPoissonDisk {
 
     while (activePoints.length != 0 && !maxPointsReached)
     {
-      var randomIndex = Tools.randomInt(activePoints.length);
+      var randomIndex = UpdTools.randomInt(activePoints.length);
 
       var point = activePoints[randomIndex];
       var found = false;
@@ -178,8 +178,8 @@ class UniformPoissonDisk {
     {
       tries--;
 
-      var rndX = topLeft.x + width * Tools.randomFloat();
-      var rndY = topLeft.y + height * Tools.randomFloat();
+      var rndX = topLeft.x + width * UpdTools.randomFloat();
+      var rndY = topLeft.y + height * UpdTools.randomFloat();
 
       var p = new Point(rndX, rndY);
       if (reject != null && reject(p))
@@ -262,11 +262,11 @@ class UniformPoissonDisk {
   // random point in the annulus centered at `center` and with `minRadius = minDistance` and `maxRadius = 2 * minDistance`
   public function randomPointAround(center:Point, minDistance:Float):Point
   {
-    var d = Tools.randomFloat();
+    var d = UpdTools.randomFloat();
     var radius = minDistance + minDistance * d;
 
-    d = Tools.randomFloat();
-    var angle = Tools.TWO_PI * d;
+    d = UpdTools.randomFloat();
+    var angle = UpdTools.TWO_PI * d;
 
     var x = radius * Math.sin(angle);
     var y = radius * Math.cos(angle);
@@ -296,7 +296,7 @@ class UniformPoissonDisk {
 }
 
 
-class Tools
+class UpdTools
 {
   static public var PI(default, never):Float = Math.PI;
   static public var HALF_PI(default, never):Float = (Math.PI / 2);
@@ -311,5 +311,9 @@ class Tools
   inline static public function randomFloat(upperBound:Float = 1.0):Float 
   {
     return Math.random() * upperBound;
+  }
+  
+  inline static public function clamp(value:Float, min:Float, max:Float):Float {
+    return (value < min ? min : (value > max ? max : value));
   }
 }
