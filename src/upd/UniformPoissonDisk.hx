@@ -81,6 +81,10 @@ class UniformPoissonDisk {
     }
   }
   
+  public function sampleTriangle( triangle: Triangle, minDistance: Float, ?pointsPerIteration: Int):Array<Point>{
+     return sample( triangle.topLeft, triangle.bottomRight, minDistance: Float, triangle.hitTest, pointsPerIteration );
+  }
+ 
   public function sampleCircle(center:Point, radius:Float, minDistance:Float, ?pointsPerIteration:Int):Array<Point> 
   {
     var topLeft = new Point(center.x - radius, center.y - radius);
