@@ -1,5 +1,5 @@
 /** 
- * Uniform Poisson Disk Sampler (https://gist.github.com/azrafe7/9b89b6c59dfbe5a28530)
+ * Uniform Poisson Disk Sampler (starting from https://gist.github.com/azrafe7/9b89b6c59dfbe5a28530)
  * 
  * References:
  * 
@@ -264,7 +264,7 @@ class UniformPoissonDisk {
     }
   }
   
-  // random point in the annulus centered at `center` and with `minRadius = minDistance` and `maxRadius = 2 * minDistance`
+  // random point in the annulus centered at `center`, with `minRadius = minDistance` and `maxRadius = 2 * minDistance`
   public function randomPointAround(center:Point, minDistance:Float):Point
   {
     var d = UpdTools.randomFloat();
@@ -279,7 +279,7 @@ class UniformPoissonDisk {
     return new Point((center.x + x), (center.y + y));
   }
   
-  function pointToGridCoords(point:Point, topLeft:Point, cellSize:Float):GridIndex
+  public function pointToGridCoords(point:Point, topLeft:Point, cellSize:Float):GridIndex
   {
     return {
       row: Std.int((point.y - topLeft.y) / cellSize), 
