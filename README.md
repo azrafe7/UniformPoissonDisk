@@ -1,7 +1,7 @@
 # UniformPoissonDisk
 Uniform Poisson Disk Sampling.
 
-<sup>[online js demo](https://cdn.rawgit.com/azrafe7/UniformPoissonDisk/master/bin/JsDemo/index.html)</sup>
+<sup>[online js demo](https://rawgit.com/azrafe7/UniformPoissonDisk/master/bin/JsDemo/index.html)</sup>
 <br>
 ![](snapshot.png)
 
