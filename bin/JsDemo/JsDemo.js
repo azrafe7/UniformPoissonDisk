@@ -1482,7 +1482,7 @@ upd_UniformPoissonDisk.prototype = {
 	}
 	,addFirstPoint: function() {
 		if(this.firstPoint != null) {
-			var index = this.pointToGridCoords(this.firstPoint,this.topLeft,this.cellSize);
+			var index = upd_UpdTools.pointToGridCoords(this.firstPoint,this.topLeft,this.cellSize);
 			this.addSampledPoint(this.firstPoint,index);
 			return;
 		}
@@ -1497,15 +1497,15 @@ upd_UniformPoissonDisk.prototype = {
 				continue;
 			}
 			added = true;
-			var index1 = this.pointToGridCoords(p,this.topLeft,this.cellSize);
+			var index1 = upd_UpdTools.pointToGridCoords(p,this.topLeft,this.cellSize);
 			this.addSampledPoint(p,index1);
 		}
 	}
 	,addNextPointAround: function(point) {
-		var q = this.randomPointAround(point,this.currMinDistance);
+		var q = upd_UpdTools.randomPointAround(point,this.currMinDistance);
 		var mustReject = this.reject != null && this.reject(q);
 		if(q.x >= this.topLeft.x && q.x < this.bottomRight.x && q.y >= this.topLeft.y && q.y < this.bottomRight.y && !mustReject) {
-			var qIndex = this.pointToGridCoords(q,this.topLeft,this.cellSize);
+			var qIndex = upd_UpdTools.pointToGridCoords(q,this.topLeft,this.cellSize);
 			if(!this.isInNeighbourhood(q,qIndex)) {
 				this.addSampledPoint(q,qIndex);
 				return true;
@@ -1567,16 +1567,10 @@ upd_UniformPoissonDisk.prototype = {
 		}
 	}
 	,randomPointAround: function(center,minDistance) {
-		var d = Math.random();
-		var radius = minDistance + minDistance * d;
-		d = Math.random();
-		var angle = upd_UpdTools.TWO_PI * d;
-		var x = radius * Math.sin(angle);
-		var y = radius * Math.cos(angle);
-		return new upd_SimplePoint(center.x + x,center.y + y);
+		return upd_UpdTools.randomPointAround(center,minDistance);
 	}
 	,pointToGridCoords: function(point,topLeft,cellSize) {
-		return { row : (point.y - topLeft.y) / cellSize | 0, col : (point.x - topLeft.x) / cellSize | 0};
+		return upd_UpdTools.pointToGridCoords(point,topLeft,cellSize);
 	}
 	,distanceSquared: function(p,q) {
 		var dx = p.x - q.x;
@@ -1586,12 +1580,34 @@ upd_UniformPoissonDisk.prototype = {
 	,distance: function(p,q) {
 		var dx = p.x - q.x;
 		var dy = p.y - q.y;
-		return Math.sqrt(dx * dx + dy * dy);
+		return dx * dx + dy * dy;
 	}
 	,__class__: upd_UniformPoissonDisk
 };
 var upd_UpdTools = function() { };
 upd_UpdTools.__name__ = true;
+upd_UpdTools.randomPointAround = function(center,minDistance) {
+	var d = Math.random();
+	var radius = minDistance + minDistance * d;
+	d = Math.random();
+	var angle = upd_UpdTools.TWO_PI * d;
+	var x = radius * Math.sin(angle);
+	var y = radius * Math.cos(angle);
+	return new upd_SimplePoint(center.x + x,center.y + y);
+};
+upd_UpdTools.pointToGridCoords = function(point,topLeft,cellSize) {
+	return { row : (point.y - topLeft.y) / cellSize | 0, col : (point.x - topLeft.x) / cellSize | 0};
+};
+upd_UpdTools.distanceSquared = function(p,q) {
+	var dx = p.x - q.x;
+	var dy = p.y - q.y;
+	return dx * dx + dy * dy;
+};
+upd_UpdTools.distance = function(p,q) {
+	var dx = p.x - q.x;
+	var dy = p.y - q.y;
+	return Math.sqrt(dx * dx + dy * dy);
+};
 upd_UpdTools.randomInt = function(upperBound) {
 	return Std.random(upperBound);
 };
