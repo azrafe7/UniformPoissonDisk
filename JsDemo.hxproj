@@ -24,7 +24,7 @@
     <option noInlineOnDebug="False" />
     <option mainClass="JsDemo" />
     <option enabledebug="False" />
-    <option additional="-resource prim.png@prim.png&#xA;-debug" />
+    <option additional="-resource prim.png@prim.png&#xA;-resource fallout.png@fallout.png&#xA;-debug" />
   </build>
   <!-- haxelib libraries -->
   <haxelib>

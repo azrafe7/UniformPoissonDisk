@@ -2,6 +2,4 @@
 -main JsDemo_Noise
 -js bin\JsDemo_Noise\JsDemo_Noise.js
 -lib hxnoise
--resource prim.png@prim.png
-#-resource fallout.png@fallout.png
 -debug

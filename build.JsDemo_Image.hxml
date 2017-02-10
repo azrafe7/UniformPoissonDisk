@@ -1,7 +1,6 @@
 -cp src
--main JsDemo
--js bin\JsDemo\JsDemo.js
--lib hxnoise
+-main JsDemo_Image
+-js bin\JsDemo_Image\JsDemo_Image.js
 -resource prim.png@prim.png
 -resource fallout.png@fallout.png
 -debug

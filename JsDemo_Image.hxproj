@@ -4,7 +4,7 @@
   <output>
     <movie outputType="CustomBuild" />
     <movie input="" />
-    <movie path="build.JsDemo_Noise.hxml" />
+    <movie path="build.JsDemo_Image.hxml" />
     <movie fps="0" />
     <movie width="0" />
     <movie height="0" />
@@ -22,13 +22,13 @@
     <option directives="" />
     <option flashStrict="False" />
     <option noInlineOnDebug="False" />
-    <option mainClass="JsDemo_Noise" />
+    <option mainClass="JsDemo_Image" />
     <option enabledebug="False" />
-    <option additional="-debug" />
+    <option additional="-resource prim.png@prim.png&#xA;-resource fallout.png@fallout.png&#xA;-debug" />
   </build>
   <!-- haxelib libraries -->
   <haxelib>
-    <library name="hxnoise" />
+    <!-- example: <library name="..." /> -->
   </haxelib>
   <!-- Class files to compile (other referenced classes will automatically be included) -->
   <compileTargets>
