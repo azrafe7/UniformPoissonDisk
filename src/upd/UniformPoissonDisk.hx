@@ -264,8 +264,37 @@ class UniformPoissonDisk {
     }
   }
   
+  inline public function randomPointAround(center:Point, minDistance:Float):Point 
+  {
+    return UpdTools.randomPointAround(center, minDistance);
+  }
+  
+  inline public function pointToGridCoords(point:Point, topLeft:Point, cellSize:Float):GridIndex 
+  {
+    return UpdTools.pointToGridCoords(point, topLeft, cellSize);
+  }
+  
+  inline public function distanceSquared(p:Point, q:Point):Float 
+  {
+    return UpdTools.distanceSquared(p, q);
+  }
+  
+  inline public function distance(p:Point, q:Point):Float 
+  {
+    return UpdTools.distanceSquared(p, q);
+  }  
+}
+
+
+class UpdTools
+{
+  static public var PI(default, never):Float = Math.PI;
+  static public var HALF_PI(default, never):Float = (Math.PI / 2);
+  static public var TWO_PI(default, never):Float = (Math.PI * 2);
+  static public var SQUARE_ROOT_TWO(default, never):Float = Math.sqrt(2);
+  
   // random point in the annulus centered at `center`, with `minRadius = minDistance` and `maxRadius = 2 * minDistance`
-  public function randomPointAround(center:Point, minDistance:Float):Point
+  static public function randomPointAround(center:Point, minDistance:Float):Point
   {
     var d = UpdTools.randomFloat();
     var radius = minDistance + minDistance * d;
@@ -279,7 +308,7 @@ class UniformPoissonDisk {
     return new Point((center.x + x), (center.y + y));
   }
   
-  public function pointToGridCoords(point:Point, topLeft:Point, cellSize:Float):GridIndex
+  static public function pointToGridCoords(point:Point, topLeft:Point, cellSize:Float):GridIndex
   {
     return {
       row: Std.int((point.y - topLeft.y) / cellSize), 
@@ -287,26 +316,17 @@ class UniformPoissonDisk {
     }
   }
   
-  inline public function distanceSquared(p:Point, q:Point):Float 
+  inline static public function distanceSquared(p:Point, q:Point):Float 
   {
     var dx = p.x - q.x;
     var dy = p.y - q.y;
     return dx * dx + dy * dy;
   }
   
-  inline public function distance(p:Point, q:Point):Float 
+  inline static public function distance(p:Point, q:Point):Float 
   {
     return Math.sqrt(distanceSquared(p, q));
   }
-}
-
-
-class UpdTools
-{
-  static public var PI(default, never):Float = Math.PI;
-  static public var HALF_PI(default, never):Float = (Math.PI / 2);
-  static public var TWO_PI(default, never):Float = (Math.PI * 2);
-  static public var SQUARE_ROOT_TWO(default, never):Float = Math.sqrt(2);
   
   inline static public function randomInt(upperBound:Int):Int 
   {
