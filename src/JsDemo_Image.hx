@@ -19,66 +19,116 @@ class JsDemo_Image {
   
   static var imagePalette = FIRE_PALETTE;
 
-  static var imageData:ImageData;
-  
   
   public static function main() {
     
-    // image
-    var tinyCanvasPNG = new TinyCanvas(WIDTH, HEIGHT, "canvas-png");
-    document.body.appendChild(tinyCanvasPNG.canvas);
-    initTinyCanvas(tinyCanvasPNG, X + (WIDTH + SPACE) * 3, Y);
+    // image (prim)
+    var tinyCanvasPrim = new TinyCanvas(WIDTH, HEIGHT, "canvas-prim");
+    document.body.appendChild(tinyCanvasPrim.canvas);
+    initTinyCanvas(tinyCanvasPrim, X + (WIDTH + SPACE) * 3, Y);
     
     // load image from resource
-    var pngBytes = Resource.getBytes("prim.png");
-    var image = document.createImageElement();
-    image.onload = function(event) {
+    loadImageResource("prim.png", function(image) {
       
-      clearCanvas(tinyCanvasPNG);
-      tinyCanvasPNG.context.drawImage(image, 0, 0, WIDTH, HEIGHT);
+      clearCanvas(tinyCanvasPrim);
+      tinyCanvasPrim.context.drawImage(image, 0, 0, WIDTH, HEIGHT);
 
       
       // use image
-      var tinyCanvasSamplePNG = new TinyCanvas(WIDTH, HEIGHT, "canvas-samplepng");
-      document.body.appendChild(tinyCanvasSamplePNG.canvas);
-      initTinyCanvas(tinyCanvasSamplePNG, tinyCanvasPNG.canvas.offsetLeft, tinyCanvasPNG.canvas.offsetTop);
+      var tinyCanvasSamplePrim = new TinyCanvas(WIDTH, HEIGHT, "canvas-samplepng");
+      document.body.appendChild(tinyCanvasSamplePrim.canvas);
+      initTinyCanvas(tinyCanvasSamplePrim, tinyCanvasPrim.canvas.offsetLeft, tinyCanvasPrim.canvas.offsetTop);
       
-      var canvasSamplePNGOnClick = function(?event) {
+      var canvasSamplePrimOnClick = function(?event) {
         
         var minDist = 2;
         var drawRadius = minDist * .15;
         var rect = {
           x: 15, 
           y: 15, 
-          width: tinyCanvasSamplePNG.width - 30,
-          height: tinyCanvasSamplePNG.height - 30
+          width: tinyCanvasSamplePrim.width - 30,
+          height: tinyCanvasSamplePrim.height - 30
         }
         
         grabMousePos(event);
         
-        var samples = generateImageSamples(rect.x, rect.y, rect.width, rect.height, minDist, tinyCanvasPNG.context.getImageData(0, 0, WIDTH, HEIGHT));
+        var samples = generatePrimSamples(rect.x, rect.y, rect.width, rect.height, minDist, tinyCanvasPrim.context.getImageData(0, 0, WIDTH, HEIGHT));
         
-        clearCanvas(tinyCanvasSamplePNG, imagePalette);
+        clearCanvas(tinyCanvasSamplePrim, imagePalette);
         
         // draw rect from which we're sampling
-        tinyCanvasSamplePNG.lineStyle(2., BOUNDS_COLOR, .75)
+        tinyCanvasSamplePrim.lineStyle(2., BOUNDS_COLOR, .75)
           .drawRect(rect.x, rect.y, rect.width, rect.height);
         
-        drawSamples(tinyCanvasSamplePNG, samples, drawRadius, imagePalette, true, true);
+        drawSamples(tinyCanvasSamplePrim, samples, drawRadius, imagePalette, true, true);
         
       };
       
-      tinyCanvasSamplePNG.canvas.addEventListener("click", canvasSamplePNGOnClick);
-      canvasSamplePNGOnClick();
+      tinyCanvasSamplePrim.canvas.addEventListener("click", canvasSamplePrimOnClick);
+      canvasSamplePrimOnClick();
       
-    }
+    });
     
-    image.src = "data:image/png;base64," + haxe.crypto.Base64.encode(pngBytes);
+    
+    // image (fallout)
+    var tinyCanvasFallout = new TinyCanvas(WIDTH, HEIGHT, "canvas-fallout");
+    document.body.appendChild(tinyCanvasFallout.canvas);
+    initTinyCanvas(tinyCanvasFallout, X + (WIDTH + SPACE) * 4, Y);
+    
+    // load image from resource
+    loadImageResource("fallout.png", function(image) {
+      
+      clearCanvas(tinyCanvasFallout);
+      tinyCanvasFallout.context.drawImage(image, 0, 0, WIDTH, HEIGHT);
+
+      
+      // use image
+      var tinyCanvasSampleFallout = new TinyCanvas(WIDTH, HEIGHT, "canvas-samplepng");
+      document.body.appendChild(tinyCanvasSampleFallout.canvas);
+      initTinyCanvas(tinyCanvasSampleFallout, tinyCanvasFallout.canvas.offsetLeft, tinyCanvasFallout.canvas.offsetTop);
+      
+      var canvasSampleFalloutOnClick = function(?event) {
+        
+        var minDist = 15;
+        var drawRadius = minDist * .05;
+        var rect = {
+          x: 15, 
+          y: 15, 
+          width: tinyCanvasSampleFallout.width - 30,
+          height: tinyCanvasSampleFallout.height - 30
+        }
+        
+        grabMousePos(event);
+        
+        var samples = generateFalloutSamples(rect.x, rect.y, rect.width, rect.height, minDist, tinyCanvasFallout.context.getImageData(0, 0, WIDTH, HEIGHT));
+        
+        clearCanvas(tinyCanvasSampleFallout, imagePalette);
+        
+        // draw rect from which we're sampling
+        tinyCanvasSampleFallout.lineStyle(2., BOUNDS_COLOR, .75)
+          .drawRect(rect.x, rect.y, rect.width, rect.height);
+        
+        drawSamples(tinyCanvasSampleFallout, samples, drawRadius, imagePalette, true, true);
+        
+      };
+      
+      tinyCanvasSampleFallout.canvas.addEventListener("click", canvasSampleFalloutOnClick);
+      canvasSampleFalloutOnClick();
+      
+    });
   }
 
   
-  // generate sample points from image
-  static function generateImageSamples(x:Float, y:Float, width:Float, height:Float, minDist:Float, imageData:ImageData):Array<Point> {
+  static function loadImageResource(resourceId:String, onLoad:ImageElement->Void):Void {
+    var pngBytes = Resource.getBytes(resourceId);
+    if (pngBytes == null) throw 'Could not find resource with id "$resourceId"!';
+    var image = document.createImageElement();
+    image.onload = function() { onLoad(image); }
+    image.src = "data:image/png;base64," + haxe.crypto.Base64.encode(pngBytes);
+  }
+  
+  // generate sample points from image (prim)
+  static function generatePrimSamples(x:Float, y:Float, width:Float, height:Float, minDist:Float, imageData:ImageData):Array<Point> {
     var topLeft = new Point(x, y);
     var bottomRight = new Point(x + width, y + height);
     
@@ -101,6 +151,37 @@ class JsDemo_Image {
     function reject(p:Point):Bool {
       var value = getValue(p.x, p.y);
       return value < .6 || value > .8;
+    }
+    
+    upd.firstPoint = mousePos;
+    return upd.sample(topLeft, bottomRight, minDistanceFunc, minDist, reject, OVERRIDE_DEFAULT_POINTS_PER_ITERATION);
+  }
+  
+  // generate sample points from image (fallout)
+  static function generateFalloutSamples(x:Float, y:Float, width:Float, height:Float, minDist:Float, imageData:ImageData):Array<Point> {
+    var topLeft = new Point(x, y);
+    var bottomRight = new Point(x + width, y + height);
+    
+    var upd = new UniformPoissonDisk();
+    var bgraBytes = imageData.data;
+    var center = new Point(x + width * .5, y + height * .5);
+    var radius = Math.min(width, height) * .5;
+    
+    inline function getValue(x:Float, y:Float):Float {
+      var ix = Std.int(x);
+      var iy = Std.int(y);
+      var i = (iy * WIDTH + ix) * 4;
+      return bgraBytes[i] / 255;
+    }
+    
+    function minDistanceFunc(p:Point):Float {
+      var value = getValue(p.x, p.y);
+      var dist = minDist * value;
+      return clamp(dist, UniformPoissonDisk.MIN_DISTANCE_THRESHOLD, minDist);
+    }
+    
+    function reject(p:Point):Bool {
+      return upd.distanceSquared(p, center) > radius * radius;
     }
     
     upd.firstPoint = mousePos;
