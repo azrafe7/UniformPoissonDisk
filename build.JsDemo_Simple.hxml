@@ -1,0 +1,4 @@
+-cp src
+-main JsDemo_Simple
+-js bin\JsDemo_Simple\JsDemo_Simple.js
+-debug
