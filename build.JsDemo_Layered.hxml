@@ -1,0 +1,4 @@
+-cp src
+-main JsDemo_Layered
+-js bin\JsDemo_Layered\JsDemo_Layered.js
+-debug

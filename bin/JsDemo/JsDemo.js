@@ -110,18 +110,16 @@ JsDemo.main = function() {
 var JsDemo_$Image = function() { };
 JsDemo_$Image.__name__ = true;
 JsDemo_$Image.main = function() {
-	var tinyCanvasPNG = new TinyCanvas(JsCommon.WIDTH,JsCommon.HEIGHT,"canvas-png");
-	window.document.body.appendChild(tinyCanvasPNG.canvas);
-	JsCommon.initTinyCanvas(tinyCanvasPNG,JsCommon.X + (JsCommon.WIDTH + JsCommon.SPACE) * 3,JsCommon.Y);
-	var pngBytes = haxe_Resource.getBytes("prim.png");
-	var image = window.document.createElement("img");
-	image.onload = function(event) {
-		JsCommon.clearCanvas(tinyCanvasPNG);
-		tinyCanvasPNG.context.drawImage(image,0,0,JsCommon.WIDTH,JsCommon.HEIGHT);
-		var tinyCanvasSamplePNG = new TinyCanvas(JsCommon.WIDTH,JsCommon.HEIGHT,"canvas-samplepng");
-		window.document.body.appendChild(tinyCanvasSamplePNG.canvas);
-		JsCommon.initTinyCanvas(tinyCanvasSamplePNG,tinyCanvasPNG.canvas.offsetLeft,tinyCanvasPNG.canvas.offsetTop);
-		var canvasSamplePNGOnClick = function(event1) {
+	var tinyCanvasPrim = new TinyCanvas(JsCommon.WIDTH,JsCommon.HEIGHT,"canvas-prim");
+	window.document.body.appendChild(tinyCanvasPrim.canvas);
+	JsCommon.initTinyCanvas(tinyCanvasPrim,JsCommon.X + (JsCommon.WIDTH + JsCommon.SPACE) * 3,JsCommon.Y);
+	JsDemo_$Image.loadImageResource("prim.png",function(image) {
+		JsCommon.clearCanvas(tinyCanvasPrim);
+		tinyCanvasPrim.context.drawImage(image,0,0,JsCommon.WIDTH,JsCommon.HEIGHT);
+		var tinyCanvasSamplePrim = new TinyCanvas(JsCommon.WIDTH,JsCommon.HEIGHT,"canvas-samplepng");
+		window.document.body.appendChild(tinyCanvasSamplePrim.canvas);
+		JsCommon.initTinyCanvas(tinyCanvasSamplePrim,tinyCanvasPrim.canvas.offsetLeft,tinyCanvasPrim.canvas.offsetTop);
+		var canvasSamplePrimOnClick = function(event) {
 			var minDist = 2;
 			var drawRadius = minDist * .15;
 			var rect_y;
@@ -130,30 +128,78 @@ JsDemo_$Image.main = function() {
 			var rect_height;
 			rect_x = 15;
 			rect_y = 15;
-			rect_width = tinyCanvasSamplePNG.canvas.width - 30;
-			rect_height = tinyCanvasSamplePNG.canvas.height - 30;
-			if(event1 != null) {
-				var rect = event1.target.getBoundingClientRect();
-				var mouseX = event1.clientX - rect.left;
-				var mouseY = event1.clientY - rect.top;
+			rect_width = tinyCanvasSamplePrim.canvas.width - 30;
+			rect_height = tinyCanvasSamplePrim.canvas.height - 30;
+			if(event != null) {
+				var rect = event.target.getBoundingClientRect();
+				var mouseX = event.clientX - rect.left;
+				var mouseY = event.clientY - rect.top;
 				if(JsCommon.mousePos == null) {
 					JsCommon.mousePos = new upd_SimplePoint(0,0);
 				}
 				JsCommon.mousePos.x = mouseX;
 				JsCommon.mousePos.y = mouseY;
 			}
-			var samples = JsDemo_$Image.generateImageSamples(rect_x,rect_y,rect_width,rect_height,minDist,tinyCanvasPNG.context.getImageData(0,0,JsCommon.WIDTH,JsCommon.HEIGHT));
-			JsCommon.clearCanvas(tinyCanvasSamplePNG,JsDemo_$Image.imagePalette);
-			TinyCanvas.drawRect(TinyCanvas.lineStyle(tinyCanvasSamplePNG,2.,JsCommon.BOUNDS_COLOR,.75),rect_x,rect_y,rect_width,rect_height);
-			JsCommon.drawSamples(tinyCanvasSamplePNG,samples,drawRadius,JsDemo_$Image.imagePalette,true,true);
+			var samples = JsDemo_$Image.generatePrimSamples(rect_x,rect_y,rect_width,rect_height,minDist,tinyCanvasPrim.context.getImageData(0,0,JsCommon.WIDTH,JsCommon.HEIGHT));
+			JsCommon.clearCanvas(tinyCanvasSamplePrim,JsDemo_$Image.imagePalette);
+			TinyCanvas.drawRect(TinyCanvas.lineStyle(tinyCanvasSamplePrim,2.,JsCommon.BOUNDS_COLOR,.75),rect_x,rect_y,rect_width,rect_height);
+			JsCommon.drawSamples(tinyCanvasSamplePrim,samples,drawRadius,JsDemo_$Image.imagePalette,true,true);
 		};
-		tinyCanvasSamplePNG.canvas.addEventListener("click",canvasSamplePNGOnClick);
-		canvasSamplePNGOnClick();
+		tinyCanvasSamplePrim.canvas.addEventListener("click",canvasSamplePrimOnClick);
+		canvasSamplePrimOnClick();
+	});
+	var tinyCanvasFallout = new TinyCanvas(JsCommon.WIDTH,JsCommon.HEIGHT,"canvas-fallout");
+	window.document.body.appendChild(tinyCanvasFallout.canvas);
+	JsCommon.initTinyCanvas(tinyCanvasFallout,JsCommon.X + (JsCommon.WIDTH + JsCommon.SPACE) * 4,JsCommon.Y);
+	JsDemo_$Image.loadImageResource("fallout.png",function(image1) {
+		JsCommon.clearCanvas(tinyCanvasFallout);
+		tinyCanvasFallout.context.drawImage(image1,0,0,JsCommon.WIDTH,JsCommon.HEIGHT);
+		var tinyCanvasSampleFallout = new TinyCanvas(JsCommon.WIDTH,JsCommon.HEIGHT,"canvas-samplepng");
+		window.document.body.appendChild(tinyCanvasSampleFallout.canvas);
+		JsCommon.initTinyCanvas(tinyCanvasSampleFallout,tinyCanvasFallout.canvas.offsetLeft,tinyCanvasFallout.canvas.offsetTop);
+		var canvasSampleFalloutOnClick = function(event1) {
+			var minDist1 = 15;
+			var drawRadius1 = minDist1 * .05;
+			var rect_y1;
+			var rect_x1;
+			var rect_width1;
+			var rect_height1;
+			rect_x1 = 15;
+			rect_y1 = 15;
+			rect_width1 = tinyCanvasSampleFallout.canvas.width - 30;
+			rect_height1 = tinyCanvasSampleFallout.canvas.height - 30;
+			if(event1 != null) {
+				var rect1 = event1.target.getBoundingClientRect();
+				var mouseX1 = event1.clientX - rect1.left;
+				var mouseY1 = event1.clientY - rect1.top;
+				if(JsCommon.mousePos == null) {
+					JsCommon.mousePos = new upd_SimplePoint(0,0);
+				}
+				JsCommon.mousePos.x = mouseX1;
+				JsCommon.mousePos.y = mouseY1;
+			}
+			var samples1 = JsDemo_$Image.generateFalloutSamples(rect_x1,rect_y1,rect_width1,rect_height1,minDist1,tinyCanvasFallout.context.getImageData(0,0,JsCommon.WIDTH,JsCommon.HEIGHT));
+			JsCommon.clearCanvas(tinyCanvasSampleFallout,JsDemo_$Image.imagePalette);
+			TinyCanvas.drawRect(TinyCanvas.lineStyle(tinyCanvasSampleFallout,2.,JsCommon.BOUNDS_COLOR,.75),rect_x1,rect_y1,rect_width1,rect_height1);
+			JsCommon.drawSamples(tinyCanvasSampleFallout,samples1,drawRadius1,JsDemo_$Image.imagePalette,true,true);
+		};
+		tinyCanvasSampleFallout.canvas.addEventListener("click",canvasSampleFalloutOnClick);
+		canvasSampleFalloutOnClick();
+	});
+};
+JsDemo_$Image.loadImageResource = function(resourceId,onLoad) {
+	var pngBytes = haxe_Resource.getBytes(resourceId);
+	if(pngBytes == null) {
+		throw new js__$Boot_HaxeError("Could not find resource with id \"" + resourceId + "\"!");
+	}
+	var image = window.document.createElement("img");
+	image.onload = function() {
+		onLoad(image);
 	};
 	var tmp = haxe_crypto_Base64.encode(pngBytes);
 	image.src = "data:image/png;base64," + tmp;
 };
-JsDemo_$Image.generateImageSamples = function(x,y,width,height,minDist,imageData) {
+JsDemo_$Image.generatePrimSamples = function(x,y,width,height,minDist,imageData) {
 	var topLeft = new upd_SimplePoint(x,y);
 	var bottomRight = new upd_SimplePoint(x + width,y + height);
 	var upd1 = new upd_UniformPoissonDisk();
@@ -183,6 +229,38 @@ JsDemo_$Image.generateImageSamples = function(x,y,width,height,minDist,imageData
 		} else {
 			return true;
 		}
+	};
+	upd1.firstPoint = JsCommon.mousePos;
+	return upd1.sample(topLeft,bottomRight,minDistanceFunc,minDist,reject,JsCommon.OVERRIDE_DEFAULT_POINTS_PER_ITERATION);
+};
+JsDemo_$Image.generateFalloutSamples = function(x,y,width,height,minDist,imageData) {
+	var topLeft = new upd_SimplePoint(x,y);
+	var bottomRight = new upd_SimplePoint(x + width,y + height);
+	var upd1 = new upd_UniformPoissonDisk();
+	var bgraBytes = imageData.data;
+	var center_y;
+	var center_x = x + width * .5;
+	center_y = y + height * .5;
+	var radius = Math.min(width,height) * .5;
+	var minDistanceFunc = function(p) {
+		var ix = p.x | 0;
+		var iy = p.y | 0;
+		var i = (iy * JsCommon.WIDTH + ix) * 4;
+		var value = bgraBytes[i] / 255;
+		var dist = minDist * value;
+		var min = upd_UniformPoissonDisk.MIN_DISTANCE_THRESHOLD;
+		if(dist < min) {
+			return min;
+		} else if(dist > minDist) {
+			return minDist;
+		} else {
+			return dist;
+		}
+	};
+	var reject = function(p1) {
+		var dx = p1.x - center_x;
+		var dy = p1.y - center_y;
+		return dx * dx + dy * dy > radius * radius;
 	};
 	upd1.firstPoint = JsCommon.mousePos;
 	return upd1.sample(topLeft,bottomRight,minDistanceFunc,minDist,reject,JsCommon.OVERRIDE_DEFAULT_POINTS_PER_ITERATION);
