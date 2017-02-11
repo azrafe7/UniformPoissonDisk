@@ -46,7 +46,7 @@ class JsCommon {
     var fillAlpha = .25;
     
     // draw circles at sampled points
-    if (highlightFirstPoint) {
+    if (highlightFirstPoint && samples.length > 0) {
       var p = samples[0];
       tinyCanvas.lineStyle(2, color, 1);
       tinyCanvas.beginFill(color, .75);
