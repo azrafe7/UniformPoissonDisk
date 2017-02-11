@@ -42,11 +42,13 @@ class JsCommon {
   
   // draw samples onto tinyCanvas, optionally using a color palette
   public static function drawSamples(tinyCanvas:TinyCanvas, samples:Array<Point>, radius:Float, ?palette:Palette, ?fill:Bool = false, ?highlightFirstPoint:Bool = true):Void {
+    if (samples == null || samples.length == 0) return;
+    
     var color = palette != null ? palette[0] : 0xFF0000;
     var fillAlpha = .25;
     
     // draw circles at sampled points
-    if (highlightFirstPoint && samples.length > 0) {
+    if (highlightFirstPoint) {
       var p = samples[0];
       tinyCanvas.lineStyle(2, color, 1);
       tinyCanvas.beginFill(color, .75);
