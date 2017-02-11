@@ -35,7 +35,7 @@ class JsDemo_Image {
 
       
       // use image
-      var tinyCanvasSamplePrim = new TinyCanvas(WIDTH, HEIGHT, "canvas-samplepng");
+      var tinyCanvasSamplePrim = new TinyCanvas(WIDTH, HEIGHT, "canvas-sampleprim");
       document.body.appendChild(tinyCanvasSamplePrim.canvas);
       initTinyCanvas(tinyCanvasSamplePrim, tinyCanvasPrim.canvas.offsetLeft, tinyCanvasPrim.canvas.offsetTop);
       
@@ -83,7 +83,7 @@ class JsDemo_Image {
 
       
       // use image
-      var tinyCanvasSampleFallout = new TinyCanvas(WIDTH, HEIGHT, "canvas-samplepng");
+      var tinyCanvasSampleFallout = new TinyCanvas(WIDTH, HEIGHT, "canvas-samplefallout");
       document.body.appendChild(tinyCanvasSampleFallout.canvas);
       initTinyCanvas(tinyCanvasSampleFallout, tinyCanvasFallout.canvas.offsetLeft, tinyCanvasFallout.canvas.offsetTop);
       

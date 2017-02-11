@@ -21,6 +21,7 @@ class JsDemo {
     JsDemo_Simple.main();
     JsDemo_Noise.main();
     JsDemo_Image.main();
+    JsDemo_Layered.main();
     
   }
 }

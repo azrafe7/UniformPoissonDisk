@@ -24,12 +24,12 @@ class JsDemo_Layered {
     // sample multi layers
     var tinyCanvasRect = new TinyCanvas(WIDTH, HEIGHT, "canvas-samplelayered");
     document.body.appendChild(tinyCanvasRect.canvas);
-    initTinyCanvas(tinyCanvasRect, X, Y + (HEIGHT + SPACE) * 1);
+    initTinyCanvas(tinyCanvasRect, X + (WIDTH + SPACE) * 2, Y + (HEIGHT + SPACE) * 1);
     
     var canvasRectOnClick = function(?event) {
       
       var minDist = 28.;
-      var layerScale = .5;
+      var layerScale = .75;
       var rect = {
         x: 15, 
         y: 15, 
@@ -70,14 +70,14 @@ class JsDemo_Layered {
       for (i in 0...3) {
         samples = generateSamplesInRect(rect.x, rect.y, rect.width, rect.height, minDist);
         layers.push(samples);
+        minDist *= layerScale;
         if (i > 0) {
           filter(layers[i], layers[i - 1], minDist);
           if (layers.length > 1) {
             layers[i].concat(layers[i - 1]);
           }
         }
-        minDist *= layerScale;
-        var drawRadius = minDist;
+        var drawRadius = minDist * .5;
         drawSamples(tinyCanvasRect, layers[i], drawRadius, layerPalette, true);
       }
     };
