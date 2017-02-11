@@ -9,6 +9,12 @@ Uniform Poisson Disk Sampling.
  - a reject function can be used to filter out sampled points (while sampling)
  - optionally a first point can be specified (instead of choosing one randomly inside the sampling area)
 
+## TODO
+ 
+ - write examples for all the use-cases presented in the devmag article
+ - optimize methods (split const min distance from parametric distance if feasible)
+ - improve comments throughout code (upd code especially)
+ 
 ## References
 
  - http://devmag.org.za/2009/05/03/poisson-disk-sampling/ (read this!)
