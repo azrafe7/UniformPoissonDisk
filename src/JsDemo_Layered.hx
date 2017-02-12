@@ -15,8 +15,8 @@ using TinyCanvas;
 
 class JsDemo_Layered {
   
-  static var mergedPalette = OCEAN_PALETTE;
-  static var layerPalette = GRASS_PALETTE;
+  static var mergedPalette = FIRE_PALETTE;
+  static var layerPalette = OCEAN_PALETTE;
 
   
   public static function main() {
