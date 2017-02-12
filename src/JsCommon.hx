@@ -100,6 +100,7 @@ class JsCommon {
   
   // grab mouse pos from `mouseEvent` (if possible) and store it into `mousePos`
   public static inline function grabMousePos(mouseEvent):Void {
+    mousePos = null;
     if (mouseEvent != null) {
       var rect = mouseEvent.target.getBoundingClientRect();
       var mouseX = mouseEvent.clientX - rect.left;
