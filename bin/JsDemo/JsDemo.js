@@ -321,12 +321,11 @@ JsDemo_$Layered.main = function() {
 			while(_g2 < toRemove.length) {
 				var index = toRemove[_g2];
 				++_g2;
-				currSamples.splice(index,1);
 			}
 		};
 		var layers = [];
 		var _g3 = 0;
-		while(_g3 < 3) {
+		while(_g3 < 2) {
 			var i1 = _g3++;
 			samples = JsDemo_$Layered.generateSamplesInRect(rect_x,rect_y,rect_width,rect_height,minDist);
 			layers.push(samples);
@@ -337,7 +336,7 @@ JsDemo_$Layered.main = function() {
 					layers[i1].concat(layers[i1 - 1]);
 				}
 			}
-			var drawRadius = minDist * .5;
+			var drawRadius = minDist * .4;
 			JsCommon.drawSamples(tinyCanvasRect,layers[i1],drawRadius,JsDemo_$Layered.layerPalette,true);
 		}
 	};

@@ -15,8 +15,8 @@ using TinyCanvas;
 
 class JsDemo_Layered {
   
-  static var mergedPalette = GRASS_PALETTE;
-  static var layerPalette = OCEAN_PALETTE;
+  static var mergedPalette = OCEAN_PALETTE;
+  static var layerPalette = GRASS_PALETTE;
 
   
   public static function main() {
@@ -31,7 +31,7 @@ class JsDemo_Layered {
     var numLayers = 3;
     var layers = [];
     var filteredLayers = [];
-    var minDistances = [5., 20, 58];
+    var minDistances = [6., 28, 48];
     var drawRadiusScales = [.5, .5, .5];
     var tinyCanvases = [];
     
@@ -54,9 +54,6 @@ class JsDemo_Layered {
         var drawRadius = minDistances[i] * drawRadiusScales[i];
         drawSamples(tinyCanvasMerge, filteredLayers[i], drawRadius, mergedPalette, true);
       }
-      
-      clearCanvas(tinyCanvases[2]);
-      drawSamples(tinyCanvases[2], layers[2], 25, null, true);
     };
     
     
@@ -68,7 +65,7 @@ class JsDemo_Layered {
       tinyCanvases.push(tinyCanvasLayer);
       
       var canvasOnClick = function(?event, layer:Int) {
-        trace(layer);
+        
         var tinyCanvas = tinyCanvases[layer];
         
         grabMousePos(event);
@@ -87,7 +84,7 @@ class JsDemo_Layered {
         drawSamples(tinyCanvas, layers[layer], drawRadius, layerPalette, true);
         
         // trigger merging if all layers are populated
-        //if (layers.length == numLayers) canvasMergeOnClick();
+        if (layers.length == numLayers) canvasMergeOnClick();
       }
     
       tinyCanvases[i].canvas.addEventListener("click", canvasOnClick.bind(_, i));
