@@ -31,7 +31,7 @@ class JsDemo_Layered {
     var numLayers = 3;
     var layers = [];
     var filteredLayers = [];
-    var minDistances = [6., 28, 48];
+    var minDistances = [6., 24, 54];
     var drawRadiusScales = [.5, .5, .5];
     var tinyCanvases = [];
     
